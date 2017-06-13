@@ -67,7 +67,14 @@ namespace igl
     IGL_INLINE void compute_jacobians(igl::SLIMData& s, const Eigen::MatrixXd &uv);
     IGL_INLINE void build_linear_system(igl::SLIMData& s, Eigen::SparseMatrix<double> &L);
     IGL_INLINE void pre_calc(igl::SLIMData& s);
-
+    IGL_INLINE void solve(
+        const Eigen::SparseMatrix<double>& H,
+        const Eigen::SparseMatrix<double>& Aeq,
+        const Eigen::VectorXd& c,
+        const Eigen::VectorXi& bi,
+        const Eigen::VectorXd& b,
+        Eigen::VectorXd& sol
+    );
     // Implementation
     IGL_INLINE void compute_surface_gradient_matrix(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F,
                                                     const Eigen::MatrixXd &F1, const Eigen::MatrixXd &F2,
@@ -82,6 +89,34 @@ namespace igl
 
       D1 = F1.col(0).asDiagonal() * Dx + F1.col(1).asDiagonal() * Dy + F1.col(2).asDiagonal() * Dz;
       D2 = F2.col(0).asDiagonal() * Dx + F2.col(1).asDiagonal() * Dy + F2.col(2).asDiagonal() * Dz;
+    }
+
+    IGL_INLINE void solve(
+        const Eigen::SparseMatrix<double>& H,
+        const Eigen::SparseMatrix<double>& Aeq,
+        const Eigen::VectorXd& c,
+        const Eigen::VectorXi& bi,
+        const Eigen::VectorXd& b,
+        Eigen::VectorXd& sol
+    ){
+        int neq = Aeq.rows();   // number of constraints
+        Eigen::SparseMatrix<double> new_A;
+        Eigen::VectorXd rhs(c.rows()+b.rows());
+        Eigen::SparseMatrix<double> AeqT = Aeq.transpose();
+        Eigen::SparseMatrix<double> Z(neq,neq);
+        // This is a bit slower. But why isn't cat fast?
+        new_A = igl::cat(1, igl::cat(2,   H, AeqT ),
+                       igl::cat(2, Aeq,    Z ));
+        rhs << c,
+               b;
+        // Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+        // sol = solver.compute(new_A).solve(rhs);
+        Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> solver;
+        sol = solver.compute(new_A).solve(rhs);
+        for(int i=0;i<bi.rows();i++){
+          sol(bi(i)) = b(i);
+        }
+        std::cout << "The size of new_A is "<<std::endl<<new_A.rows()<<","<<new_A.cols()<<std::endl;
     }
 
     IGL_INLINE void compute_jacobians(igl::SLIMData& s, const Eigen::MatrixXd &uv)
@@ -399,16 +434,55 @@ namespace igl
       Eigen::VectorXd Uc;
       if (s.dim == 2)
       {
-        SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
-        Uc = solver.compute(L).solve(s.rhs);
+        if(!s.is_hard_cstr){
+          SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+          Uc = solver.compute(L).solve(s.rhs);
+        }else{
+
+          VectorXd bc=VectorXd::Zero(soft_bc_p.rows()*s.dim);
+          VectorXi b=VectorXi::Zero(soft_bc_p.rows()*s.dim);
+          if(soft_b_p.rows()!=0){
+            b<<soft_b_p,soft_b_p.array()+V.rows();
+            bc<<soft_bc_p.col(0),soft_bc_p.col(1);
+          }
+
+          SparseMatrix<double> Aeq(b.rows(),s.dim*V.rows());
+          for(int r=0;r<b.rows();r++){
+            Aeq.insert(r,b(r))=1;
+          }
+          Aeq.makeCompressed();
+
+          VectorXd xx;
+          solve(L,Aeq,s.rhs,b,bc,xx);
+          Uc=xx.block(0,0,2*V.rows(),1);
+        }
       }
       else
       { // seems like CG performs much worse for 2D and way better for 3D
-        Eigen::VectorXd guess(uv.rows() * s.dim);
-        for (int i = 0; i < s.v_num; i++) for (int j = 0; j < s.dim; j++) guess(uv.rows() * j + i) = uv(i, j); // flatten vector
-        ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Upper> solver;
-        solver.setTolerance(1e-8);
-        Uc = solver.compute(L).solveWithGuess(s.rhs, guess);
+        if(!s.is_hard_cstr){
+          Eigen::VectorXd guess(uv.rows() * s.dim);
+          for (int i = 0; i < s.v_num; i++) for (int j = 0; j < s.dim; j++) guess(uv.rows() * j + i) = uv(i, j); // flatten vector
+          ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Upper> solver;
+          solver.setTolerance(1e-8);
+          Uc = solver.compute(L).solveWithGuess(s.rhs, guess);
+        }else{
+          VectorXd bc=VectorXd::Zero(soft_bc_p.rows()*s.dim);
+          VectorXi b=VectorXi::Zero(soft_bc_p.rows()*s.dim);
+          if(soft_b_p.rows()!=0){
+            b<<soft_b_p,soft_b_p.array()+V.rows(),soft_b_p.array()+2*V.rows();
+            bc<<soft_bc_p.col(0),soft_bc_p.col(1),soft_bc_p.col(2);
+          }
+
+          SparseMatrix<double> Aeq(b.rows(),s.dim*V.rows());
+          for(int r=0;r<b.rows();r++){
+            Aeq.insert(r,b(r))=1;
+          }
+          Aeq.makeCompressed();
+
+          VectorXd xx;
+          solve(L,Aeq,s.rhs,b,bc,xx);
+          Uc=xx.block(0,0,3*V.rows(),1);
+        }
       }
 
       for (int i = 0; i < s.dim; i++)
@@ -839,14 +913,15 @@ namespace igl
 /// Slim Implementation
 
 IGL_INLINE void igl::slim_precompute(
-  const Eigen::MatrixXd &V, 
-  const Eigen::MatrixXi &F, 
-  const Eigen::MatrixXd &V_init, 
+  const Eigen::MatrixXd &V,
+  const Eigen::MatrixXi &F,
+  const Eigen::MatrixXd &V_init,
   SLIMData &data,
-  SLIMData::SLIM_ENERGY slim_energy, 
-  Eigen::VectorXi &b, 
+  SLIMData::SLIM_ENERGY slim_energy,
+  Eigen::VectorXi &b,
   Eigen::MatrixXd &bc,
-  double soft_p)
+  double soft_p,
+  bool is_hard_cstr)
 {
 
   data.V = V;
@@ -861,6 +936,7 @@ IGL_INLINE void igl::slim_precompute(
   data.b = b;
   data.bc = bc;
   data.soft_const_p = soft_p;
+  data.is_hard_cstr = is_hard_cstr;
 
   data.proximal_p = 0.0001;
 

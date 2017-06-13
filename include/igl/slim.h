@@ -37,6 +37,7 @@ struct SLIMData
   Eigen::VectorXi b;
   Eigen::MatrixXd bc;
   double soft_const_p;
+  bool is_hard_cstr;
 
   double exp_factor; // used for exponential energies, ignored otherwise
   bool mesh_improvement_3d; // only supported for 3d
@@ -82,7 +83,9 @@ IGL_INLINE void slim_precompute(
   SLIMData::SLIM_ENERGY slim_energy,
   Eigen::VectorXi& b,
   Eigen::MatrixXd& bc,
-  double soft_p);
+  double soft_p,
+  bool is_hard_cstr
+);
 
 // Run iter_num iterations of SLIM
 // Outputs:
