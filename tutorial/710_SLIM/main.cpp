@@ -97,7 +97,7 @@ void param_2d_demo_iter(igl::viewer::Viewer& viewer) {
 
     sData.slim_energy = igl::SLIMData::SYMMETRIC_DIRICHLET;
     Eigen::VectorXi b; Eigen::MatrixXd bc;
-    slim_precompute(V,F,uv_init,sData, igl::SLIMData::SYMMETRIC_DIRICHLET, b,bc,0);
+    slim_precompute(V,F,uv_init,sData, igl::SLIMData::SYMMETRIC_DIRICHLET, b,bc,0,false);
 
     uv_scale_param = 15 * (1./sqrt(sData.mesh_area));
     viewer.data.set_mesh(V, F);
@@ -126,7 +126,7 @@ void soft_const_demo_iter(igl::viewer::Viewer& viewer) {
     Eigen::VectorXi b; Eigen::MatrixXd bc;
     get_soft_constraint_for_circle(V_0,F,b,bc);
     double soft_const_p = 1e5;
-    slim_precompute(V,F,V_0,sData,igl::SLIMData::SYMMETRIC_DIRICHLET,b,bc,soft_const_p);
+    slim_precompute(V,F,V_0,sData,igl::SLIMData::SYMMETRIC_DIRICHLET,b,bc,soft_const_p,false);
 
     viewer.data.set_mesh(V, F);
     viewer.core.align_camera_center(V,F);
@@ -151,7 +151,7 @@ void deform_3d_demo_iter(igl::viewer::Viewer& viewer) {
 
     double soft_const_p = 1e5;
     sData.exp_factor = 5.0;
-    slim_precompute(V,F,V_0,sData,igl::SLIMData::EXP_CONFORMAL,b,bc,soft_const_p);
+    slim_precompute(V,F,V_0,sData,igl::SLIMData::EXP_CONFORMAL,b,bc,soft_const_p,true);
     cout << "precomputed" << endl;
 
     first_iter = false;
@@ -262,11 +262,11 @@ void check_mesh_for_issues(Eigen::MatrixXd& V, Eigen::MatrixXi& F) {
     cout << "Error! Input has multiple connected components" << endl; exit(1);
   }
   int euler_char = igl::euler_characteristic(V, F);
-  if (euler_char!=1) 
+  if (euler_char!=1)
   {
-    cout << 
-      "Error! Input does not have a disk topology, it's euler char is " << 
-      euler_char << endl; 
+    cout <<
+      "Error! Input does not have a disk topology, it's euler char is " <<
+      euler_char << endl;
     exit(1);
   }
   bool is_edge_manifold = igl::is_edge_manifold(F);
