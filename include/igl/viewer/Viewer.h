@@ -36,7 +36,7 @@
 namespace nanogui { class FormHelper; class Screen; }
 #endif
 
-struct GLFWwindow;
+class GLFWwindow;
 
 namespace igl
 {
@@ -60,6 +60,9 @@ namespace viewer
 
     // Stores all the data that should be visualized
     ViewerData data;
+
+		// Stores all the result data that should be visualized (in the rhs viewport)
+    ViewerData data_vp;
 
     // Stores the vbos indices and opengl related settings
     OpenGL_state opengl;

@@ -33,13 +33,10 @@
 
 #include <Eigen/LU>
 
-//#define GLFW_INCLUDE_GLU
-#if defined(__APPLE__)
-#define GLFW_INCLUDE_GLCOREARB
-#else
-#define GL_GLEXT_PROTOTYPES
+#define GLFW_INCLUDE_GLU
+#ifndef _WIN32
+  #define GLFW_INCLUDE_GLCOREARB
 #endif
-
 #include <GLFW/glfw3.h>
 
 #include <cmath>
@@ -83,6 +80,7 @@ static igl::viewer::Viewer * __viewer;
 static double highdpi = 1;
 static double scroll_x = 0;
 static double scroll_y = 0;
+static int global_KMod = 0;
 
 static void glfw_mouse_press(GLFWwindow* window, int button, int action, int modifier)
 {
@@ -205,7 +203,7 @@ namespace viewer
     ngui->setFixedSize(Eigen::Vector2i(60,20));
 
     // Create nanogui widgets
-    /* nanogui::Window *window = */ ngui->addWindow(Eigen::Vector2i(10,10),"libIGL-Viewer");
+    nanogui::Window *window = ngui->addWindow(Eigen::Vector2i(10,10),"libIGL-Viewer");
 
     // ---------------------- LOADING ----------------------
 
@@ -316,7 +314,6 @@ namespace viewer
     const std::string usage(R"(igl::viewer::Viewer usage:
   [drag]  Rotate scene
   A,a     Toggle animation (tight draw loop)
-  F,f     Toggle face based
   I,i     Toggle invert normals
   L,l     Toggle wireframe
   O,o     Toggle orthographic/perspective projection
@@ -497,12 +494,6 @@ namespace viewer
         core.is_animating = !core.is_animating;
         return true;
       }
-      case 'F':
-      case 'f':
-      {
-        data.set_face_based(!data.face_based);
-        return true;
-      }
       case 'I':
       case 'i':
       {
@@ -600,8 +591,26 @@ namespace viewer
     down = true;
 
     down_translation = core.model_translation;
+		// determine left view port or right view port;
+		std::cout<<current_mouse_x<<std::endl;
+		// core.whichView = current_mouse_x<core.viewport(2)/2) ? 0 : 1;
+		if(current_mouse_x<core.viewport(2)/2){
+			// if(core.whichView==1){
+			// 	core.model_b = core.model;
+			// }
+			core.whichView = 0;
+			core.model = core.model_a;
+			core.trackball_angle = core.trackball_angle_a;
+		}
+		else{
+			// if(core.whichView==0){
+			// 	core.model_a = core.model;
+			// }
+			core.model = core.model_b;
+			core.whichView = 1;
+			core.trackball_angle = core.trackball_angle_b;
 
-
+		}
     // Initialization code for the trackball
     Eigen::RowVector3d center;
     if (data.V.rows() == 0)
@@ -609,7 +618,10 @@ namespace viewer
       center << 0,0,0;
     }else
     {
-      center = data.V.colwise().sum()/data.V.rows();
+			if(core.whichView==0)
+      	center = data.V.colwise().sum()/data.V.rows();
+			else
+				center = data_vp.V.colwise().sum()/data_vp.V.rows();
     }
 
     Eigen::Vector3f coord =
@@ -619,8 +631,7 @@ namespace viewer
         core.proj,
         core.viewport);
     down_mouse_z = coord[2];
-    down_rotation = core.trackball_angle;
-
+		down_rotation = core.trackball_angle;
     mouse_mode = MouseMode::Rotation;
 
     switch (button)
@@ -637,7 +648,8 @@ namespace viewer
         mouse_mode = MouseMode::None;
         break;
     }
-
+		// std::cout<<"mouse down"<<std::endl;
+		// std::cout<<core.model<<std::endl;
     return true;
   }
 
@@ -698,6 +710,10 @@ namespace viewer
                 mouse_x,
                 mouse_y,
                 core.trackball_angle);
+								if(core.whichView==0)
+									core.trackball_angle_a = core.trackball_angle;
+								else
+									core.trackball_angle_b = core.trackball_angle;
               break;
             case ViewerCore::ROTATION_TYPE_TWO_AXIS_VALUATOR_FIXED_UP:
               igl::two_axis_valuator_fixed_up(
@@ -706,6 +722,10 @@ namespace viewer
                 down_rotation,
                 down_mouse_x, down_mouse_y, mouse_x, mouse_y,
                 core.trackball_angle);
+								if(core.whichView==0)
+									core.trackball_angle_a = core.trackball_angle;
+								else
+									core.trackball_angle_b = core.trackball_angle;
               break;
           }
           //Eigen::Vector4f snapq = core.trackball_angle;
@@ -757,8 +777,17 @@ namespace viewer
     {
       float mult = (1.0+((delta_y>0)?1.:-1.)*0.05);
       const float min_zoom = 0.1f;
+			if(core.whichView==0)
+				core.camera_zoom=core.camera_zoom_a;
+			else
+				core.camera_zoom=core.camera_zoom_b;
       core.camera_zoom = (core.camera_zoom * mult > min_zoom ? core.camera_zoom * mult : min_zoom);
+			if(core.whichView==0)
+				core.camera_zoom_a=core.camera_zoom;
+			else
+				core.camera_zoom_b=core.camera_zoom;
     }
+		//std::cout<<core.model<<std::endl;
     return true;
   }
 
@@ -777,7 +806,7 @@ namespace viewer
       if (plugins[i]->pre_draw())
         return;
 
-    core.draw(data,opengl);
+    core.draw(data,data_vp,opengl);
 
     if (callback_post_draw)
       if (callback_post_draw(*this))
@@ -788,8 +817,8 @@ namespace viewer
         break;
 
 #ifdef IGL_VIEWER_WITH_NANOGUI
-	screen->drawContents();
-	screen->drawWidgets();
+    ngui->refresh();
+    screen->drawWidgets();
 #endif
   }
 
@@ -880,7 +909,7 @@ namespace viewer
 
     glfwWindowHint(GLFW_SAMPLES, 8);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
     #ifdef __APPLE__
       glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -958,7 +987,10 @@ namespace viewer
     highdpi = width/width_window;
 
     glfw_window_size(window,width_window,height_window);
-
+	// glViewport(200,200,100,100);
+	// glScissor(200,200,100,100);
+	// glEnable(GL_SCISSOR_TEST);
+	// glClear(GL_COLOR_BUFFER_BIT);
     opengl.init();
 
     core.align_camera_center(data.V,data.F);
@@ -977,7 +1009,8 @@ namespace viewer
     {
       double tic = get_seconds();
       draw();
-
+			// std::cout<<"after draw"<<std::endl;
+			// std::cout<<core.model<<std::endl;
       glfwSwapBuffers(window);
       if(core.is_animating)
       {

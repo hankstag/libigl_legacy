@@ -8,11 +8,11 @@
 #ifndef IGL_VIEWER_VIEWER_CORE_H
 #define IGL_VIEWER_VIEWER_CORE_H
 
-#include <igl/viewer/OpenGL_state.h>
 #ifdef IGL_VIEWER_WITH_NANOGUI
 #include <igl/viewer/TextRenderer.h>
 #endif
 #include <igl/viewer/ViewerData.h>
+#include <igl/viewer/OpenGL_state.h>
 
 #include <igl/igl_inline.h>
 #include <Eigen/Geometry>
@@ -73,7 +73,8 @@ public:
   IGL_INLINE void clear_framebuffers();
 
   // Draw everything
-  IGL_INLINE void draw(ViewerData& data, OpenGL_state& opengl, bool update_matrices = true);
+	IGL_INLINE void draw(ViewerData& data, OpenGL_state& opengl, bool update_matrices = true);
+  IGL_INLINE void draw(ViewerData& data, ViewerData& data_vp, OpenGL_state& opengl, bool update_matrices = true);
   IGL_INLINE void draw_buffer(
     ViewerData& data,
     OpenGL_state& opengl,
@@ -112,18 +113,28 @@ public:
 
   RotationType rotation_type;
 
-  Eigen::Quaternionf trackball_angle;
+	Eigen::Quaternionf trackball_angle;
+	Eigen::Quaternionf trackball_angle_a;
+	Eigen::Quaternionf trackball_angle_b;
+
+	// Choose between two views for interactions
+	int whichView = 0;
 
   // Model viewing parameters
-  float model_zoom;
-  Eigen::Vector3f model_translation;
+	float model_zoom;
+	float model_zoom_a;
+  float model_zoom_b;
+
+	Eigen::Vector3f model_translation;
 
   // Model viewing paramters (uv coordinates)
   float model_zoom_uv;
   Eigen::Vector3f model_translation_uv;
 
   // Camera parameters
-  float camera_zoom;
+	float camera_zoom;
+	float camera_zoom_a;
+  float camera_zoom_b;
   bool orthographic;
   Eigen::Vector3f camera_eye;
   Eigen::Vector3f camera_up;
@@ -159,7 +170,9 @@ public:
 
   // Save the OpenGL transformation matrices used for the previous rendering pass
   Eigen::Matrix4f view;
-  Eigen::Matrix4f model;
+	Eigen::Matrix4f model;
+	Eigen::Matrix4f model_a;
+  Eigen::Matrix4f model_b;
   Eigen::Matrix4f proj;
   public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -167,77 +180,6 @@ public:
 
 }
 }
-
-#ifdef ENABLE_SERIALIZATION
-#include <igl/serialize.h>
-namespace igl {
-	namespace serialization {
-
-		inline void serialization(bool s, igl::viewer::ViewerCore& obj, std::vector<char>& buffer)
-		{
-			SERIALIZE_MEMBER(shininess);
-
-			SERIALIZE_MEMBER(background_color);
-			SERIALIZE_MEMBER(line_color);
-
-			SERIALIZE_MEMBER(light_position);
-			SERIALIZE_MEMBER(lighting_factor);
-
-			SERIALIZE_MEMBER(trackball_angle);
-			SERIALIZE_MEMBER(rotation_type);
-
-			SERIALIZE_MEMBER(model_zoom);
-			SERIALIZE_MEMBER(model_translation);
-
-			SERIALIZE_MEMBER(model_zoom_uv);
-			SERIALIZE_MEMBER(model_translation_uv);
-
-			SERIALIZE_MEMBER(camera_zoom);
-			SERIALIZE_MEMBER(orthographic);
-			SERIALIZE_MEMBER(camera_view_angle);
-			SERIALIZE_MEMBER(camera_dnear);
-			SERIALIZE_MEMBER(camera_dfar);
-			SERIALIZE_MEMBER(camera_eye);
-			SERIALIZE_MEMBER(camera_center);
-			SERIALIZE_MEMBER(camera_up);
-
-			SERIALIZE_MEMBER(show_faces);
-			SERIALIZE_MEMBER(show_lines);
-			SERIALIZE_MEMBER(invert_normals);
-			SERIALIZE_MEMBER(show_overlay);
-			SERIALIZE_MEMBER(show_overlay_depth);
-			SERIALIZE_MEMBER(show_vertid);
-			SERIALIZE_MEMBER(show_faceid);
-			SERIALIZE_MEMBER(show_texture);
-			SERIALIZE_MEMBER(depth_test);
-
-			SERIALIZE_MEMBER(point_size);
-			SERIALIZE_MEMBER(line_width);
-			SERIALIZE_MEMBER(is_animating);
-			SERIALIZE_MEMBER(animation_max_fps);
-
-			SERIALIZE_MEMBER(object_scale);
-
-			SERIALIZE_MEMBER(viewport);
-			SERIALIZE_MEMBER(view);
-			SERIALIZE_MEMBER(model);
-			SERIALIZE_MEMBER(proj);
-		}
-
-		template<>
-		inline void serialize(const igl::viewer::ViewerCore& obj, std::vector<char>& buffer)
-		{
-			serialization(true, const_cast<igl::viewer::ViewerCore&>(obj), buffer);
-		}
-
-		template<>
-		inline void deserialize(igl::viewer::ViewerCore& obj, const std::vector<char>& buffer)
-		{
-			serialization(false, obj, const_cast<std::vector<char>&>(buffer));
-		}
-  }
-}
-#endif
 
 #ifndef IGL_STATIC_LIBRARY
 #  include "ViewerCore.cpp"

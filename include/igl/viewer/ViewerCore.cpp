@@ -14,9 +14,79 @@
 #include <igl/ortho.h>
 #include <igl/massmatrix.h>
 #include <igl/barycenter.h>
-#include <igl/PI.h>
 #include <Eigen/Geometry>
 #include <iostream>
+
+#ifdef ENABLE_SERIALIZATION
+#include <igl/serialize.h>
+namespace igl {
+  namespace serialization {
+
+    IGL_INLINE void serialization(bool s,igl::viewer::ViewerCore& obj,std::vector<char>& buffer)
+    {
+      SERIALIZE_MEMBER(shininess);
+
+      SERIALIZE_MEMBER(background_color);
+      SERIALIZE_MEMBER(line_color);
+
+      SERIALIZE_MEMBER(light_position);
+      SERIALIZE_MEMBER(lighting_factor);
+
+      SERIALIZE_MEMBER(trackball_angle);
+      SERIALIZE_MEMBER(rotation_type);
+
+      SERIALIZE_MEMBER(model_zoom);
+      SERIALIZE_MEMBER(model_translation);
+
+      SERIALIZE_MEMBER(model_zoom_uv);
+      SERIALIZE_MEMBER(model_translation_uv);
+
+      SERIALIZE_MEMBER(camera_zoom);
+      SERIALIZE_MEMBER(orthographic);
+      SERIALIZE_MEMBER(camera_view_angle);
+      SERIALIZE_MEMBER(camera_dnear);
+      SERIALIZE_MEMBER(camera_dfar);
+      SERIALIZE_MEMBER(camera_eye);
+      SERIALIZE_MEMBER(camera_center);
+      SERIALIZE_MEMBER(camera_up);
+
+      SERIALIZE_MEMBER(show_faces);
+      SERIALIZE_MEMBER(show_lines);
+      SERIALIZE_MEMBER(invert_normals);
+      SERIALIZE_MEMBER(show_overlay);
+      SERIALIZE_MEMBER(show_overlay_depth);
+      SERIALIZE_MEMBER(show_vertid);
+      SERIALIZE_MEMBER(show_faceid);
+      SERIALIZE_MEMBER(show_texture);
+      SERIALIZE_MEMBER(depth_test);
+
+      SERIALIZE_MEMBER(point_size);
+      SERIALIZE_MEMBER(line_width);
+      SERIALIZE_MEMBER(is_animating);
+      SERIALIZE_MEMBER(animation_max_fps);
+
+      SERIALIZE_MEMBER(object_scale);
+
+      SERIALIZE_MEMBER(viewport);
+      SERIALIZE_MEMBER(view);
+      SERIALIZE_MEMBER(model);
+      SERIALIZE_MEMBER(proj);
+    }
+
+    template<>
+    IGL_INLINE void serialize(const igl::viewer::ViewerCore& obj,std::vector<char>& buffer)
+    {
+      serialization(true,const_cast<igl::viewer::ViewerCore&>(obj),buffer);
+    }
+
+    template<>
+    IGL_INLINE void deserialize(igl::viewer::ViewerCore& obj,const std::vector<char>& buffer)
+    {
+      serialization(false,obj,const_cast<std::vector<char>&>(buffer));
+    }
+  }
+}
+#endif
 
 IGL_INLINE void igl::viewer::ViewerCore::align_camera_center(
   const Eigen::MatrixXd& V,
@@ -106,9 +176,6 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
   else
     glDisable(GL_DEPTH_TEST);
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
   /* Bind and potentially refresh mesh/line/point data */
   if (data.dirty)
   {
@@ -118,6 +185,7 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
   opengl.bind_mesh();
 
   // Initialize uniform
+
   glViewport(viewport(0), viewport(1), viewport(2), viewport(3));
 
   if(update_matrices)
@@ -136,12 +204,12 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
     if (orthographic)
     {
       float length = (camera_eye - camera_center).norm();
-      float h = tan(camera_view_angle/360.0 * igl::PI) * (length);
+      float h = tan(camera_view_angle/360.0 * M_PI) * (length);
       ortho(-h*width/height, h*width/height, -h, h, camera_dnear, camera_dfar,proj);
     }
     else
     {
-      float fH = tan(camera_view_angle / 360.0 * igl::PI) * camera_dnear;
+      float fH = tan(camera_view_angle / 360.0 * M_PI) * camera_dnear;
       float fW = fH * (double)width/(double)height;
       frustum(-fW, fW, -fH, fH, camera_dnear, camera_dfar,proj);
     }
@@ -149,8 +217,7 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
 
     // Set model transformation
     float mat[16];
-    igl::quat_to_mat(trackball_angle.coeffs().data(), mat);
-
+		igl::quat_to_mat(trackball_angle.coeffs().data(), mat);
     for (unsigned i=0;i<4;++i)
       for (unsigned j=0;j<4;++j)
         model(i,j) = mat[i+4*j];
@@ -282,8 +349,235 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
 
     glEnable(GL_DEPTH_TEST);
   }
-
 }
+
+IGL_INLINE void igl::viewer::ViewerCore::draw(
+  ViewerData& data_a, // left viewport
+	ViewerData& data_b, // right viewport
+  OpenGL_state& opengl,
+  bool update_matrices)
+{
+  using namespace std;
+  using namespace Eigen;
+
+  if (depth_test)
+    glEnable(GL_DEPTH_TEST);
+  else
+    glDisable(GL_DEPTH_TEST);
+	ViewerData data;
+	for(int i=0;i<2;i++)
+	{
+	if(i==0)
+		data=data_a;
+	else
+		data=data_b;
+  /* Bind and potentially refresh mesh/line/point data */
+  if (data.dirty)
+  {
+    opengl.set_data(data, invert_normals);
+    data.dirty = ViewerData::DIRTY_NONE;
+  }
+  opengl.bind_mesh();
+
+  // Initialize uniform
+
+  glViewport(viewport(0)+i*viewport(2)/2, viewport(1), viewport(2)/2, viewport(3));
+
+  if(update_matrices)
+  {
+    model = Eigen::Matrix4f::Identity();
+    view  = Eigen::Matrix4f::Identity();
+    proj  = Eigen::Matrix4f::Identity();
+
+    // Set view
+    look_at( camera_eye, camera_center, camera_up, view);
+
+    float width  = viewport(2)/2;
+    float height = viewport(3);
+
+    // Set projection
+    if (orthographic)
+    {
+      float length = (camera_eye - camera_center).norm();
+      float h = tan(camera_view_angle/360.0 * M_PI) * (length);
+      ortho(-h*width/height, h*width/height, -h, h, camera_dnear, camera_dfar,proj);
+    }
+    else
+    {
+      float fH = tan(camera_view_angle / 360.0 * M_PI) * camera_dnear;
+      float fW = fH * (double)width/(double)height;
+      frustum(-fW, fW, -fH, fH, camera_dnear, camera_dfar,proj);
+    }
+    // end projection
+
+    // Set model transformation
+		if(i == 0){
+			model = model_a;
+			trackball_angle = trackball_angle_a;
+			camera_zoom = camera_zoom_a;
+		}
+		else{
+			model = model_b;
+			camera_zoom = camera_zoom_b;
+			trackball_angle = trackball_angle_b;
+		}
+    float mat[16];
+		if(i == whichView){
+			igl::quat_to_mat(trackball_angle.coeffs().data(), mat);
+	    for (unsigned i=0;i<4;++i)
+	      for (unsigned j=0;j<4;++j)
+	        model(i,j) = mat[i+4*j];
+
+			// Why not just use Eigen::Transform<double,3,Projective> for model...?
+		  model.topLeftCorner(3,3)*=camera_zoom;
+		  model.topLeftCorner(3,3)*=model_zoom;
+		  model.col(3).head(3) += model.topLeftCorner(3,3)*model_translation;
+			if(i == 0)
+				model_a = model;
+			else
+				model_b = model;
+		}
+		// std::cout<<model<<std::endl;
+		// }else{
+		// 	if(whichView == 0) // i==1
+		// 		model = model_b;
+		// 	else
+		// 		model = model_a;
+		// }
+  }
+	//std::cout<<model<<std::endl;
+  // Send transformations to the GPU
+  GLint modeli = opengl.shader_mesh.uniform("model");
+  GLint viewi  = opengl.shader_mesh.uniform("view");
+  GLint proji  = opengl.shader_mesh.uniform("proj");
+  glUniformMatrix4fv(modeli, 1, GL_FALSE, model.data());
+  glUniformMatrix4fv(viewi, 1, GL_FALSE, view.data());
+  glUniformMatrix4fv(proji, 1, GL_FALSE, proj.data());
+
+  // Light parameters
+  GLint specular_exponenti    = opengl.shader_mesh.uniform("specular_exponent");
+  GLint light_position_worldi = opengl.shader_mesh.uniform("light_position_world");
+  GLint lighting_factori      = opengl.shader_mesh.uniform("lighting_factor");
+  GLint fixed_colori          = opengl.shader_mesh.uniform("fixed_color");
+  GLint texture_factori       = opengl.shader_mesh.uniform("texture_factor");
+
+  glUniform1f(specular_exponenti, shininess);
+  Vector3f rev_light = -1.*light_position;
+  glUniform3fv(light_position_worldi, 1, rev_light.data());
+  glUniform1f(lighting_factori, lighting_factor); // enables lighting
+  glUniform4f(fixed_colori, 0.0, 0.0, 0.0, 0.0);
+
+  if (data.V.rows()>0)
+  {
+    // Render fill
+    if (show_faces)
+    {
+      // Texture
+      glUniform1f(texture_factori, show_texture ? 1.0f : 0.0f);
+      opengl.draw_mesh(true);
+      glUniform1f(texture_factori, 0.0f);
+    }
+
+    // Render wireframe
+    if (show_lines)
+    {
+      glLineWidth(line_width);
+      glUniform4f(fixed_colori, line_color[0], line_color[1],
+        line_color[2], 1.0f);
+      opengl.draw_mesh(false);
+      glUniform4f(fixed_colori, 0.0f, 0.0f, 0.0f, 0.0f);
+    }
+
+#ifdef IGL_VIEWER_WITH_NANOGUI
+    if (show_vertid)
+    {
+			Eigen::Vector4f n_viewport = viewport;
+			n_viewport(2)/=2.0;
+			if(i==1)
+				n_viewport(0)=viewport(0)+viewport(2)/2;
+      textrenderer.BeginDraw(view*model, proj, n_viewport, object_scale);
+      for (int i=0; i<data.V.rows(); ++i)
+        textrenderer.DrawText(data.V.row(i),data.V_normals.row(i),to_string(i));
+      textrenderer.EndDraw();
+    }
+
+    if (show_faceid)
+    {
+			Eigen::Vector4f n_viewport = viewport;
+			n_viewport(2)/=2.0;
+			if(i==1)
+				n_viewport(0)=viewport(0)+viewport(2)/2;
+      textrenderer.BeginDraw(view*model, proj, n_viewport, object_scale);
+
+      for (int i=0; i<data.F.rows(); ++i)
+      {
+        Eigen::RowVector3d p = Eigen::RowVector3d::Zero();
+        for (int j=0;j<data.F.cols();++j)
+          p += data.V.row(data.F(i,j));
+        p /= data.F.cols();
+
+        textrenderer.DrawText(p, data.F_normals.row(i), to_string(i));
+      }
+      textrenderer.EndDraw();
+    }
+#endif
+  }
+
+  if (show_overlay)
+  {
+    if (show_overlay_depth)
+      glEnable(GL_DEPTH_TEST);
+    else
+      glDisable(GL_DEPTH_TEST);
+
+    if (data.lines.rows() > 0)
+    {
+      opengl.bind_overlay_lines();
+      modeli = opengl.shader_overlay_lines.uniform("model");
+      viewi  = opengl.shader_overlay_lines.uniform("view");
+      proji  = opengl.shader_overlay_lines.uniform("proj");
+
+      glUniformMatrix4fv(modeli, 1, GL_FALSE, model.data());
+      glUniformMatrix4fv(viewi, 1, GL_FALSE, view.data());
+      glUniformMatrix4fv(proji, 1, GL_FALSE, proj.data());
+      // This must be enabled, otherwise glLineWidth has no effect
+      glEnable(GL_LINE_SMOOTH);
+      glLineWidth(line_width);
+
+      opengl.draw_overlay_lines();
+    }
+
+    if (data.points.rows() > 0)
+    {
+      opengl.bind_overlay_points();
+      modeli = opengl.shader_overlay_points.uniform("model");
+      viewi  = opengl.shader_overlay_points.uniform("view");
+      proji  = opengl.shader_overlay_points.uniform("proj");
+
+      glUniformMatrix4fv(modeli, 1, GL_FALSE, model.data());
+      glUniformMatrix4fv(viewi, 1, GL_FALSE, view.data());
+      glUniformMatrix4fv(proji, 1, GL_FALSE, proj.data());
+      glPointSize(point_size);
+
+      opengl.draw_overlay_points();
+    }
+
+#ifdef IGL_VIEWER_WITH_NANOGUI
+    if (data.labels_positions.rows() > 0)
+    {
+      textrenderer.BeginDraw(view*model, proj, viewport, object_scale);
+      for (int i=0; i<data.labels_positions.rows(); ++i)
+        textrenderer.DrawText(data.labels_positions.row(i), Eigen::Vector3d(0.0,0.0,0.0),
+            data.labels_strings[i]);
+      textrenderer.EndDraw();
+    }
+#endif
+
+    glEnable(GL_DEPTH_TEST);
+  }
+}
+}
+
 
 IGL_INLINE void igl::viewer::ViewerCore::draw_buffer(ViewerData& data,
   OpenGL_state& opengl,
@@ -400,15 +694,24 @@ IGL_INLINE igl::viewer::ViewerCore::ViewerCore()
   lighting_factor = 1.0f; //on
 
   // Default trackball
-  trackball_angle = Eigen::Quaternionf::Identity();
+	trackball_angle = Eigen::Quaternionf::Identity();
+	trackball_angle_a = Eigen::Quaternionf::Identity();
+  trackball_angle_b = Eigen::Quaternionf::Identity();
   set_rotation_type(ViewerCore::ROTATION_TYPE_TWO_AXIS_VALUATOR_FIXED_UP);
 
   // Defalut model viewing parameters
-  model_zoom = 1.0f;
+	model_zoom = 1.0f;
+	model_zoom_a = 1.0f;
+  model_zoom_b = 1.0f;
+
+	model_a=Eigen::Matrix4f::Identity();
+	model_b=Eigen::Matrix4f::Identity();
   model_translation << 0,0,0;
 
   // Camera parameters
-  camera_zoom = 1.0f;
+	camera_zoom = 1.0f;
+	camera_zoom_a = 1.0f;
+  camera_zoom_b = 1.0f;
   orthographic = false;
   camera_view_angle = 45.0;
   camera_dnear = 1.0;
