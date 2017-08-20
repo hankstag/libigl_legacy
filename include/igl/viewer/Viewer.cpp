@@ -220,52 +220,56 @@ namespace viewer
   #endif
 
     ngui->addGroup("Viewing Options");
-    ngui->addButton("Center object",[&](){this->core.align_camera_center(this->data.V,this->data.F);});
+    //* left & right
+    ngui->addButton("Center object",[&](){this->core->align_camera_center(this->data->V,this->data->F);});
     ngui->addButton("Snap canonical view",[&]()
     {
       this->snap_to_canonical_quaternion();
     });
-    ngui->addVariable("Zoom", core.camera_zoom);
-    ngui->addVariable("Orthographic view", core.orthographic);
+    //* left & right
+    ngui->addVariable("Zoom", core->camera_zoom);
+    ngui->addVariable("Orthographic view", core->orthographic);
 
     ngui->addGroup("Draw options");
 
     ngui->addVariable<bool>("Face-based", [&](bool checked)
     {
-      this->data.set_face_based(checked);
+      this->data->set_face_based(checked);
     },[&]()
     {
-      return this->data.face_based;
+      return this->data->face_based;
     });
-
-    ngui->addVariable("Show texture",core.show_texture);
+    //* left & right
+    ngui->addVariable("Show texture",core->show_texture);
 
     ngui->addVariable<bool>("Invert normals",[&](bool checked)
     {
-      this->data.dirty |= ViewerData::DIRTY_NORMAL;
-      this->core.invert_normals = checked;
+      this->data->dirty |= ViewerData::DIRTY_NORMAL;
+      this->core->invert_normals = checked;
     },[&]()
     {
-      return this->core.invert_normals;
+      return this->core->invert_normals;
     });
-
-    ngui->addVariable("Show overlay", core.show_overlay);
-    ngui->addVariable("Show overlay depth", core.show_overlay_depth);
-    ngui->addVariable("Background", (nanogui::Color &) core.background_color);
-    ngui->addVariable("Line color", (nanogui::Color &) core.line_color);
-    ngui->addVariable("Shininess", core.shininess);
+    //* left & right
+    ngui->addVariable("Show overlay", core->show_overlay);
+    ngui->addVariable("Show overlay depth", core->show_overlay_depth);
+    ngui->addVariable("Background", (nanogui::Color &) core->background_color);
+    ngui->addVariable("Line color", (nanogui::Color &) core->line_color);
+    ngui->addVariable("Shininess", core->shininess);
 
     ngui->addGroup("Overlays");
-    ngui->addVariable("Wireframe", core.show_lines);
-    ngui->addVariable("Fill", core.show_faces);
-    ngui->addVariable("Show vertex labels", core.show_vertid);
-    ngui->addVariable("Show faces labels", core.show_faceid);
+    ngui->addVariable("Wireframe", core->show_lines);
+    ngui->addVariable("Fill", core->show_faces);
+    ngui->addVariable("Show vertex labels", core->show_vertid);
+    ngui->addVariable("Show faces labels", core->show_faceid);
 
     screen->setVisible(true);
     screen->performLayout();
 #endif
 
-    core.init();
+    core_l.init();
+    core_r.init();
+    core = &core_l;
 
     if (callback_init)
       if (callback_init(*this))
@@ -285,9 +289,9 @@ namespace viewer
     down = false;
     hack_never_moved = true;
     scroll_position = 0.0f;
-
+    data = &data_l;
     // Per face
-    data.set_face_based(false);
+    data->set_face_based(false);
 
     // C-style callbacks
     callback_init         = nullptr;
@@ -365,7 +369,7 @@ namespace viewer
       }
     }
 
-    data.clear();
+    data->clear();
 
     size_t last_dot = mesh_file_name_string.rfind('.');
     if (last_dot == std::string::npos)
@@ -382,7 +386,7 @@ namespace viewer
       Eigen::MatrixXi F;
       if (!igl::readOFF(mesh_file_name_string, V, F))
         return false;
-      data.set_mesh(V,F);
+      data->set_mesh(V,F);
     }
     else if (extension == "obj" || extension =="OBJ")
     {
@@ -402,8 +406,8 @@ namespace viewer
         return false;
       }
 
-      data.set_mesh(V,F);
-      data.set_uv(UV_V,UV_F);
+      data->set_mesh(V,F);
+      data->set_uv(UV_V,UV_F);
 
     }
     else
@@ -413,16 +417,16 @@ namespace viewer
       return false;
     }
 
-    data.compute_normals();
-    data.uniform_colors(Eigen::Vector3d(51.0/255.0,43.0/255.0,33.3/255.0),
+    data->compute_normals();
+    data->uniform_colors(Eigen::Vector3d(51.0/255.0,43.0/255.0,33.3/255.0),
                    Eigen::Vector3d(255.0/255.0,228.0/255.0,58.0/255.0),
                    Eigen::Vector3d(255.0/255.0,235.0/255.0,80.0/255.0));
-    if (data.V_uv.rows() == 0)
+    if (data->V_uv.rows() == 0)
     {
-      data.grid_texture();
+      data->grid_texture();
     }
 
-    core.align_camera_center(data.V,data.F);
+    core->align_camera_center(data->V,data->F);
 
     for (unsigned int i = 0; i<plugins.size(); ++i)
       if (plugins[i]->post_load())
@@ -450,7 +454,7 @@ namespace viewer
     std::string extension = mesh_file_name_string.substr(last_dot+1);
     if (extension == "off" || extension =="OFF")
     {
-      return igl::writeOFF(mesh_file_name_string,data.V,data.F);
+      return igl::writeOFF(mesh_file_name_string,data->V,data->F);
     }
     else if (extension == "obj" || extension =="OBJ")
     {
@@ -460,8 +464,8 @@ namespace viewer
       Eigen::MatrixXd UV_V;
       Eigen::MatrixXi UV_F;
 
-      return igl::writeOBJ(mesh_file_name_string, data.V,
-          data.F, corner_normals, fNormIndices, UV_V, UV_F);
+      return igl::writeOBJ(mesh_file_name_string, data->V,
+          data->F, corner_normals, fNormIndices, UV_V, UV_F);
     }
     else
     {
@@ -491,32 +495,32 @@ namespace viewer
       case 'A':
       case 'a':
       {
-        core.is_animating = !core.is_animating;
+        core->is_animating = !core->is_animating;
         return true;
       }
       case 'I':
       case 'i':
       {
-        data.dirty |= ViewerData::DIRTY_NORMAL;
-        core.invert_normals = !core.invert_normals;
+        data->dirty |= ViewerData::DIRTY_NORMAL;
+        core->invert_normals = !core->invert_normals;
         return true;
       }
       case 'L':
       case 'l':
       {
-        core.show_lines = !core.show_lines;
+        core->show_lines = !core->show_lines;
         return true;
       }
       case 'O':
       case 'o':
       {
-        core.orthographic = !core.orthographic;
+        core->orthographic = !core->orthographic;
         return true;
       }
       case 'T':
       case 't':
       {
-        core.show_faces = !core.show_faces;
+        core->show_faces = !core->show_faces;
         return true;
       }
       case 'Z':
@@ -527,22 +531,22 @@ namespace viewer
       case '[':
       case ']':
       {
-        if(core.rotation_type == ViewerCore::ROTATION_TYPE_TRACKBALL)
+        if(core->rotation_type == ViewerCore::ROTATION_TYPE_TRACKBALL)
         {
-          core.set_rotation_type(
+          core->set_rotation_type(
             ViewerCore::ROTATION_TYPE_TWO_AXIS_VALUATOR_FIXED_UP);
         }else
         {
-          core.set_rotation_type(ViewerCore::ROTATION_TYPE_TRACKBALL);
+          core->set_rotation_type(ViewerCore::ROTATION_TYPE_TRACKBALL);
         }
         return true;
       }
 #ifdef IGL_VIEWER_WITH_NANOGUI
       case ';':
-        core.show_vertid = !core.show_vertid;
+        core->show_vertid = !core->show_vertid;
         return true;
       case ':':
-        core.show_faceid = !core.show_faceid;
+        core->show_faceid = !core->show_faceid;
         return true;
 #endif
       default: break;//do nothing
@@ -589,49 +593,34 @@ namespace viewer
         return true;
 
     down = true;
+    // choose the core to manipulate
+    core = current_mouse_x<core->viewport(2)/2 ? &core_l : &core_r;
+    down_translation = core->model_translation;
 
-    down_translation = core.model_translation;
 		// determine left view port or right view port;
 		std::cout<<current_mouse_x<<std::endl;
-		// core.whichView = current_mouse_x<core.viewport(2)/2) ? 0 : 1;
-		if(current_mouse_x<core.viewport(2)/2){
-			// if(core.whichView==1){
-			// 	core.model_b = core.model;
-			// }
-			core.whichView = 0;
-			core.model = core.model_a;
-			core.trackball_angle = core.trackball_angle_a;
-		}
-		else{
-			// if(core.whichView==0){
-			// 	core.model_a = core.model;
-			// }
-			core.model = core.model_b;
-			core.whichView = 1;
-			core.trackball_angle = core.trackball_angle_b;
 
-		}
     // Initialization code for the trackball
     Eigen::RowVector3d center;
-    if (data.V.rows() == 0)
+    if (data->V.rows() == 0)
     {
       center << 0,0,0;
     }else
     {
-			if(core.whichView==0)
-      	center = data.V.colwise().sum()/data.V.rows();
+			if(core->whichView==0)
+      	center = data_l.V.colwise().sum()/data_l.V.rows();
 			else
-				center = data_vp.V.colwise().sum()/data_vp.V.rows();
+				center = data_r.V.colwise().sum()/data_r.V.rows();
     }
 
     Eigen::Vector3f coord =
       igl::project(
         Eigen::Vector3f(center(0),center(1),center(2)),
-        (core.view * core.model).eval(),
-        core.proj,
-        core.viewport);
+        (core->view * core->model).eval(),
+        core->proj,
+        core->viewport);
     down_mouse_z = coord[2];
-		down_rotation = core.trackball_angle;
+		down_rotation = core->trackball_angle;
     mouse_mode = MouseMode::Rotation;
 
     switch (button)
@@ -649,7 +638,7 @@ namespace viewer
         break;
     }
 		// std::cout<<"mouse down"<<std::endl;
-		// std::cout<<core.model<<std::endl;
+		// std::cout<<core->model<<std::endl;
     return true;
   }
 
@@ -695,40 +684,32 @@ namespace viewer
       {
         case MouseMode::Rotation:
         {
-          switch(core.rotation_type)
+          switch(core->rotation_type)
           {
             default:
               assert(false && "Unknown rotation type");
             case ViewerCore::ROTATION_TYPE_TRACKBALL:
               igl::trackball(
-                core.viewport(2),
-                core.viewport(3),
+                core->viewport(2),
+                core->viewport(3),
                 2.0f,
                 down_rotation,
                 down_mouse_x,
                 down_mouse_y,
                 mouse_x,
                 mouse_y,
-                core.trackball_angle);
-								if(core.whichView==0)
-									core.trackball_angle_a = core.trackball_angle;
-								else
-									core.trackball_angle_b = core.trackball_angle;
+                core->trackball_angle);
               break;
             case ViewerCore::ROTATION_TYPE_TWO_AXIS_VALUATOR_FIXED_UP:
               igl::two_axis_valuator_fixed_up(
-                core.viewport(2),core.viewport(3),
+                core->viewport(2),core->viewport(3),
                 2.0,
                 down_rotation,
                 down_mouse_x, down_mouse_y, mouse_x, mouse_y,
-                core.trackball_angle);
-								if(core.whichView==0)
-									core.trackball_angle_a = core.trackball_angle;
-								else
-									core.trackball_angle_b = core.trackball_angle;
+                core->trackball_angle);
               break;
           }
-          //Eigen::Vector4f snapq = core.trackball_angle;
+          //Eigen::Vector4f snapq = core->trackball_angle;
 
           break;
         }
@@ -736,18 +717,18 @@ namespace viewer
         case MouseMode::Translation:
         {
           //translation
-          Eigen::Vector3f pos1 = igl::unproject(Eigen::Vector3f(mouse_x, core.viewport[3] - mouse_y, down_mouse_z), (core.view * core.model).eval(), core.proj, core.viewport);
-          Eigen::Vector3f pos0 = igl::unproject(Eigen::Vector3f(down_mouse_x, core.viewport[3] - down_mouse_y, down_mouse_z), (core.view * core.model).eval(), core.proj, core.viewport);
+          Eigen::Vector3f pos1 = igl::unproject(Eigen::Vector3f(mouse_x, core->viewport[3] - mouse_y, down_mouse_z), (core->view * core->model).eval(), core->proj, core->viewport);
+          Eigen::Vector3f pos0 = igl::unproject(Eigen::Vector3f(down_mouse_x, core->viewport[3] - down_mouse_y, down_mouse_z), (core->view * core->model).eval(), core->proj, core->viewport);
 
           Eigen::Vector3f diff = pos1 - pos0;
-          core.model_translation = down_translation + Eigen::Vector3f(diff[0],diff[1],diff[2]);
+          core->model_translation = down_translation + Eigen::Vector3f(diff[0],diff[1],diff[2]);
 
           break;
         }
         case MouseMode::Zoom:
         {
           float delta = 0.001f * (mouse_x - down_mouse_x + mouse_y - down_mouse_y);
-          core.camera_zoom *= 1 + delta;
+          core->camera_zoom *= 1 + delta;
           down_mouse_x = mouse_x;
           down_mouse_y = mouse_y;
           break;
@@ -777,17 +758,9 @@ namespace viewer
     {
       float mult = (1.0+((delta_y>0)?1.:-1.)*0.05);
       const float min_zoom = 0.1f;
-			if(core.whichView==0)
-				core.camera_zoom=core.camera_zoom_a;
-			else
-				core.camera_zoom=core.camera_zoom_b;
-      core.camera_zoom = (core.camera_zoom * mult > min_zoom ? core.camera_zoom * mult : min_zoom);
-			if(core.whichView==0)
-				core.camera_zoom_a=core.camera_zoom;
-			else
-				core.camera_zoom_b=core.camera_zoom;
+      core->camera_zoom = (core->camera_zoom * mult > min_zoom ? core->camera_zoom * mult : min_zoom);
     }
-		//std::cout<<core.model<<std::endl;
+		//std::cout<<core->model<<std::endl;
     return true;
   }
 
@@ -796,7 +769,7 @@ namespace viewer
     using namespace std;
     using namespace Eigen;
 
-    core.clear_framebuffers();
+    core->clear_framebuffers();
 
     if (callback_pre_draw)
       if (callback_pre_draw(*this))
@@ -806,7 +779,8 @@ namespace viewer
       if (plugins[i]->pre_draw())
         return;
 
-    core.draw(data,data_vp,opengl);
+    core_l.draw(true,data_l,opengl);
+    core_r.draw(false,data_r,opengl);
 
     if (callback_post_draw)
       if (callback_post_draw(*this))
@@ -871,13 +845,14 @@ namespace viewer
 
   IGL_INLINE void Viewer::resize(int w,int h)
   {
-    core.viewport = Eigen::Vector4f(0,0,w,h);
+    core_l.viewport = Eigen::Vector4f(0,0,w,h);
+    core_r.viewport = Eigen::Vector4f(0,0,w,h);
   }
 
   IGL_INLINE void Viewer::snap_to_canonical_quaternion()
   {
-    Eigen::Quaternionf snapq = this->core.trackball_angle;
-    igl::snap_to_canonical_view_quat(snapq,1.0f,this->core.trackball_angle);
+    Eigen::Quaternionf snapq = this->core->trackball_angle;
+    igl::snap_to_canonical_view_quat(snapq,1.0f,this->core->trackball_angle);
   }
 
   IGL_INLINE void Viewer::open_dialog_load_mesh()
@@ -993,7 +968,7 @@ namespace viewer
 	// glClear(GL_COLOR_BUFFER_BIT);
     opengl.init();
 
-    core.align_camera_center(data.V,data.F);
+    core->align_camera_center(data->V,data->F);
 
     // Initialize IGL viewer
     init();
@@ -1010,14 +985,14 @@ namespace viewer
       double tic = get_seconds();
       draw();
 			// std::cout<<"after draw"<<std::endl;
-			// std::cout<<core.model<<std::endl;
+			// std::cout<<core->model<<std::endl;
       glfwSwapBuffers(window);
-      if(core.is_animating)
+      if(core->is_animating)
       {
         glfwPollEvents();
         // In microseconds
         double duration = 1000000.*(get_seconds()-tic);
-        const double min_duration = 1000000./core.animation_max_fps;
+        const double min_duration = 1000000./core->animation_max_fps;
         if(duration<min_duration)
         {
           std::this_thread::sleep_for(std::chrono::microseconds((int)(min_duration-duration)));
@@ -1037,7 +1012,7 @@ namespace viewer
   IGL_INLINE void Viewer::launch_shut()
   {
     opengl.free();
-    core.shut();
+    core->shut();
 
     shutdown_plugins();
 #ifdef IGL_VIEWER_WITH_NANOGUI

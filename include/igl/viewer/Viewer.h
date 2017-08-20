@@ -55,14 +55,23 @@ namespace viewer
 
     IGL_INLINE void init();
 
-    // Stores all the viewing options
-    ViewerCore core;
+    // Stores all the viewing options of left view
+    ViewerCore core_l;
+
+    // Stores all the viewing options of right view
+    ViewerCore core_r;
+
+    // The active core. use pointer?
+    ViewerCore* core = &core_l;
 
     // Stores all the data that should be visualized
-    ViewerData data;
+    ViewerData data_l;
 
 		// Stores all the result data that should be visualized (in the rhs viewport)
-    ViewerData data_vp;
+    ViewerData data_r;
+
+    // The active core. use pointer?
+    ViewerData* data = &data_l;
 
     // Stores the vbos indices and opengl related settings
     OpenGL_state opengl;

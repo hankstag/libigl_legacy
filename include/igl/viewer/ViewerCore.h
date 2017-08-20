@@ -74,7 +74,7 @@ public:
 
   // Draw everything
 	IGL_INLINE void draw(ViewerData& data, OpenGL_state& opengl, bool update_matrices = true);
-  IGL_INLINE void draw(ViewerData& data, ViewerData& data_vp, OpenGL_state& opengl, bool update_matrices = true);
+  IGL_INLINE void draw(bool is_left, ViewerData& data, OpenGL_state& opengl, bool update_matrices = true);
   IGL_INLINE void draw_buffer(
     ViewerData& data,
     OpenGL_state& opengl,

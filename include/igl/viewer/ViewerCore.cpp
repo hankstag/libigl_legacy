@@ -185,7 +185,6 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
   opengl.bind_mesh();
 
   // Initialize uniform
-
   glViewport(viewport(0), viewport(1), viewport(2), viewport(3));
 
   if(update_matrices)
@@ -352,8 +351,8 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
 }
 
 IGL_INLINE void igl::viewer::ViewerCore::draw(
-  ViewerData& data_a, // left viewport
-	ViewerData& data_b, // right viewport
+  bool isLeft,
+  ViewerData& data,
   OpenGL_state& opengl,
   bool update_matrices)
 {
@@ -364,13 +363,7 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
     glEnable(GL_DEPTH_TEST);
   else
     glDisable(GL_DEPTH_TEST);
-	ViewerData data;
-	for(int i=0;i<2;i++)
-	{
-	if(i==0)
-		data=data_a;
-	else
-		data=data_b;
+
   /* Bind and potentially refresh mesh/line/point data */
   if (data.dirty)
   {
@@ -380,9 +373,14 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
   opengl.bind_mesh();
 
   // Initialize uniform
-
-  glViewport(viewport(0)+i*viewport(2)/2, viewport(1), viewport(2)/2, viewport(3));
-
+  if(isLeft){
+    cout<<"left "<<data.V.rows()<<endl;
+    glViewport(viewport(0), viewport(1), viewport(2)/2, viewport(3));
+  }
+  else{
+    cout<<"right "<<data.V.rows()<<endl;
+    glViewport(viewport(0)+viewport(2)/2, viewport(1), viewport(2)/2, viewport(3));
+  }
   if(update_matrices)
   {
     model = Eigen::Matrix4f::Identity();
@@ -410,40 +408,18 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
     }
     // end projection
 
-    // Set model transformation
-		if(i == 0){
-			model = model_a;
-			trackball_angle = trackball_angle_a;
-			camera_zoom = camera_zoom_a;
-		}
-		else{
-			model = model_b;
-			camera_zoom = camera_zoom_b;
-			trackball_angle = trackball_angle_b;
-		}
     float mat[16];
-		if(i == whichView){
-			igl::quat_to_mat(trackball_angle.coeffs().data(), mat);
-	    for (unsigned i=0;i<4;++i)
-	      for (unsigned j=0;j<4;++j)
-	        model(i,j) = mat[i+4*j];
 
-			// Why not just use Eigen::Transform<double,3,Projective> for model...?
-		  model.topLeftCorner(3,3)*=camera_zoom;
-		  model.topLeftCorner(3,3)*=model_zoom;
-		  model.col(3).head(3) += model.topLeftCorner(3,3)*model_translation;
-			if(i == 0)
-				model_a = model;
-			else
-				model_b = model;
-		}
-		// std::cout<<model<<std::endl;
-		// }else{
-		// 	if(whichView == 0) // i==1
-		// 		model = model_b;
-		// 	else
-		// 		model = model_a;
-		// }
+		igl::quat_to_mat(trackball_angle.coeffs().data(), mat);
+    for (unsigned k=0;k<4;++k)
+      for (unsigned j=0;j<4;++j)
+        model(k,j) = mat[k+4*j];
+
+		// Why not just use Eigen::Transform<double,3,Projective> for model...?
+	  model.topLeftCorner(3,3)*=camera_zoom;
+	  model.topLeftCorner(3,3)*=model_zoom;
+	  model.col(3).head(3) += model.topLeftCorner(3,3)*model_translation;
+
   }
 	//std::cout<<model<<std::endl;
   // Send transformations to the GPU
@@ -493,7 +469,7 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
     {
 			Eigen::Vector4f n_viewport = viewport;
 			n_viewport(2)/=2.0;
-			if(i==1)
+			if(!isLeft)
 				n_viewport(0)=viewport(0)+viewport(2)/2;
       textrenderer.BeginDraw(view*model, proj, n_viewport, object_scale);
       for (int i=0; i<data.V.rows(); ++i)
@@ -505,7 +481,7 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
     {
 			Eigen::Vector4f n_viewport = viewport;
 			n_viewport(2)/=2.0;
-			if(i==1)
+			if(!isLeft)
 				n_viewport(0)=viewport(0)+viewport(2)/2;
       textrenderer.BeginDraw(view*model, proj, n_viewport, object_scale);
 
@@ -575,7 +551,6 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
 
     glEnable(GL_DEPTH_TEST);
   }
-}
 }
 
 
