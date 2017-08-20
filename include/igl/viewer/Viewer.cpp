@@ -779,8 +779,8 @@ namespace viewer
       if (plugins[i]->pre_draw())
         return;
 
-    core_l.draw(true,data_l,opengl);
-    core_r.draw(false,data_r,opengl);
+    core_l.draw(true,data_l,opengl_l);
+    core_r.draw(false,data_r,opengl_r);
 
     if (callback_post_draw)
       if (callback_post_draw(*this))
@@ -966,9 +966,11 @@ namespace viewer
 	// glScissor(200,200,100,100);
 	// glEnable(GL_SCISSOR_TEST);
 	// glClear(GL_COLOR_BUFFER_BIT);
-    opengl.init();
+    opengl_r.init();
+    opengl_l.init();
 
-    core->align_camera_center(data->V,data->F);
+    core_l.align_camera_center(data_l.V,data_l.F);
+    core_r.align_camera_center(data_r.V,data_r.F);
 
     // Initialize IGL viewer
     init();
@@ -1011,7 +1013,8 @@ namespace viewer
 
   IGL_INLINE void Viewer::launch_shut()
   {
-    opengl.free();
+    opengl_l.free();
+    opengl_r.free();
     core->shut();
 
     shutdown_plugins();

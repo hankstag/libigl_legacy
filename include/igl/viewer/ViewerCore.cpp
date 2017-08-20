@@ -364,6 +364,13 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
   else
     glDisable(GL_DEPTH_TEST);
 
+  // Initialize uniform
+  if(isLeft){
+    glViewport(viewport(0), viewport(1), viewport(2)/2, viewport(3));
+  }else{
+    glViewport(viewport(0)+viewport(2)/2, viewport(1), viewport(2)/2, viewport(3));
+  }
+
   /* Bind and potentially refresh mesh/line/point data */
   if (data.dirty)
   {
@@ -372,15 +379,7 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
   }
   opengl.bind_mesh();
 
-  // Initialize uniform
-  if(isLeft){
-    cout<<"left "<<data.V.rows()<<endl;
-    glViewport(viewport(0), viewport(1), viewport(2)/2, viewport(3));
-  }
-  else{
-    cout<<"right "<<data.V.rows()<<endl;
-    glViewport(viewport(0)+viewport(2)/2, viewport(1), viewport(2)/2, viewport(3));
-  }
+
   if(update_matrices)
   {
     model = Eigen::Matrix4f::Identity();
@@ -467,11 +466,11 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
 #ifdef IGL_VIEWER_WITH_NANOGUI
     if (show_vertid)
     {
-			Eigen::Vector4f n_viewport = viewport;
-			n_viewport(2)/=2.0;
-			if(!isLeft)
-				n_viewport(0)=viewport(0)+viewport(2)/2;
-      textrenderer.BeginDraw(view*model, proj, n_viewport, object_scale);
+			// Eigen::Vector4f n_viewport = viewport;
+			// n_viewport(2)/=2.0;
+			// if(!isLeft)
+			// 	n_viewport(0)=viewport(0)+viewport(2)/2;
+      textrenderer.BeginDraw(view*model, proj, viewport, object_scale);
       for (int i=0; i<data.V.rows(); ++i)
         textrenderer.DrawText(data.V.row(i),data.V_normals.row(i),to_string(i));
       textrenderer.EndDraw();
@@ -479,11 +478,11 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
 
     if (show_faceid)
     {
-			Eigen::Vector4f n_viewport = viewport;
-			n_viewport(2)/=2.0;
-			if(!isLeft)
-				n_viewport(0)=viewport(0)+viewport(2)/2;
-      textrenderer.BeginDraw(view*model, proj, n_viewport, object_scale);
+			// Eigen::Vector4f n_viewport = viewport;
+			// n_viewport(2)/=2.0;
+			// if(!isLeft)
+			// 	n_viewport(0)=viewport(0)+viewport(2)/2;
+      textrenderer.BeginDraw(view*model, proj, viewport, object_scale);
 
       for (int i=0; i<data.F.rows(); ++i)
       {

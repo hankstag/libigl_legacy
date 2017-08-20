@@ -74,7 +74,9 @@ namespace viewer
     ViewerData* data = &data_l;
 
     // Stores the vbos indices and opengl related settings
-    OpenGL_state opengl;
+    OpenGL_state opengl_l;
+    
+    OpenGL_state opengl_r;
 
     // List of registered plugins
     std::vector<ViewerPlugin*> plugins;
