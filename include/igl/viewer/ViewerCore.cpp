@@ -16,7 +16,6 @@
 #include <igl/barycenter.h>
 #include <Eigen/Geometry>
 #include <iostream>
-
 #ifdef ENABLE_SERIALIZATION
 #include <igl/serialize.h>
 namespace igl {
@@ -364,12 +363,13 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
   else
     glDisable(GL_DEPTH_TEST);
 
-  // Initialize uniform
-  if(isLeft){
-    glViewport(viewport(0), viewport(1), viewport(2)/2, viewport(3));
-  }else{
-    glViewport(viewport(0)+viewport(2)/2, viewport(1), viewport(2)/2, viewport(3));
-  }
+  glViewport(viewport(0),viewport(1),viewport(2),viewport(3));
+//  // Initialize uniform
+//  if(isLeft){
+//    glViewport(viewport(0), viewport(1), viewport(2)/2, viewport(3));
+//  }else{
+//    glViewport(viewport(0)+viewport(2)/2, viewport(1), viewport(2)/2, viewport(3));
+//  }
 
   /* Bind and potentially refresh mesh/line/point data */
   if (data.dirty)
@@ -389,7 +389,7 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
     // Set view
     look_at( camera_eye, camera_center, camera_up, view);
 
-    float width  = viewport(2)/2;
+    float width  = viewport(2);
     float height = viewport(3);
 
     // Set projection
@@ -466,10 +466,6 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
 #ifdef IGL_VIEWER_WITH_NANOGUI
     if (show_vertid)
     {
-			// Eigen::Vector4f n_viewport = viewport;
-			// n_viewport(2)/=2.0;
-			// if(!isLeft)
-			// 	n_viewport(0)=viewport(0)+viewport(2)/2;
       textrenderer.BeginDraw(view*model, proj, viewport, object_scale);
       for (int i=0; i<data.V.rows(); ++i)
         textrenderer.DrawText(data.V.row(i),data.V_normals.row(i),to_string(i));
@@ -478,10 +474,6 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
 
     if (show_faceid)
     {
-			// Eigen::Vector4f n_viewport = viewport;
-			// n_viewport(2)/=2.0;
-			// if(!isLeft)
-			// 	n_viewport(0)=viewport(0)+viewport(2)/2;
       textrenderer.BeginDraw(view*model, proj, viewport, object_scale);
 
       for (int i=0; i<data.F.rows(); ++i)

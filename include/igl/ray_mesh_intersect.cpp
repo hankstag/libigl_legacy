@@ -6,7 +6,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can 
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "ray_mesh_intersect.h"
-
+#include <iostream>
 extern "C"
 {
 #include "raytri.c"
@@ -33,10 +33,11 @@ IGL_INLINE bool igl::ray_mesh_intersect(
   // loop over all triangles
   for(int f = 0;f<F.rows();f++)
   {
-    // Should be but can't be const 
+    // Should be but can't be const
     RowVector3d v0 = V.row(F(f,0)).template cast<double>();
     RowVector3d v1 = V.row(F(f,1)).template cast<double>();
     RowVector3d v2 = V.row(F(f,2)).template cast<double>();
+
     // shoot ray, record hit
     double t,u,v;
     if(intersect_triangle1(

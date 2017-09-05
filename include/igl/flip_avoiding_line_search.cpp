@@ -204,7 +204,10 @@ namespace igl
             //cf = coeffs(det(vol_det),t); % Now cf(1),cf(2),cf(3),cf(4) holds the coefficients for the polynom
             [coefficients,terms] = coeffs(det(vol_det),t); % terms = [ t^3, t^2, t, 1], Coefficients hold the coeff we seek
       */
-      int v1 = F(f,0); int v2 = F(f,1); int v3 = F(f,2); int v4 = F(f,3);
+      int v1 = F(f,0);
+      int v2 = F(f,1);
+      int v3 = F(f,2);
+      int v4 = F(f,3);
       const double& a_x = uv(v1,0);
       const double& a_y = uv(v1,1);
       const double& a_z = uv(v1,2);

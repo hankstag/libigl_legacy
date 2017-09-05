@@ -260,8 +260,10 @@ namespace viewer
     ngui->addGroup("Overlays");
     ngui->addVariable("Wireframe", core->show_lines);
     ngui->addVariable("Fill", core->show_faces);
-    ngui->addVariable("Show vertex labels", core->show_vertid);
-    ngui->addVariable("Show faces labels", core->show_faceid);
+    ngui->addVariable("Show vertex labels on left", core_l.show_vertid);
+    ngui->addVariable("Show vertex labels on right", core_r.show_vertid);
+    ngui->addVariable("Show left faces labels", core_l.show_faceid);
+    ngui->addVariable("Show right faces labels", core_r.show_faceid);
 
     screen->setVisible(true);
     screen->performLayout();
@@ -269,6 +271,8 @@ namespace viewer
 
     core_l.init();
     core_r.init();
+    core_l.whichView=0;
+    core_r.whichView=1;
     core = &core_l;
 
     if (callback_init)
@@ -584,6 +588,11 @@ namespace viewer
     down_mouse_x = current_mouse_x;
     down_mouse_y = current_mouse_y;
 
+     // choose the core to manipulate
+    core = current_mouse_x<core->viewport(2) ? &core_l : &core_r;
+    data = current_mouse_x<core->viewport(2) ? &data_l : &data_r;
+    down_translation = core->model_translation;
+
     if (callback_mouse_down)
       if (callback_mouse_down(*this,static_cast<int>(button),modifier))
         return true;
@@ -591,14 +600,8 @@ namespace viewer
     for (unsigned int i = 0; i<plugins.size(); ++i)
       if(plugins[i]->mouse_down(static_cast<int>(button),modifier))
         return true;
-
     down = true;
-    // choose the core to manipulate
-    core = current_mouse_x<core->viewport(2)/2 ? &core_l : &core_r;
-    down_translation = core->model_translation;
 
-		// determine left view port or right view port;
-		std::cout<<current_mouse_x<<std::endl;
 
     // Initialization code for the trackball
     Eigen::RowVector3d center;
@@ -637,8 +640,6 @@ namespace viewer
         mouse_mode = MouseMode::None;
         break;
     }
-		// std::cout<<"mouse down"<<std::endl;
-		// std::cout<<core->model<<std::endl;
     return true;
   }
 
@@ -669,6 +670,9 @@ namespace viewer
     }
     current_mouse_x = mouse_x;
     current_mouse_y = mouse_y;
+
+    core = current_mouse_x<core->viewport(2) ? &core_l : &core_r;
+    data = current_mouse_x<core->viewport(2) ? &data_l : &data_r;
 
     if (callback_mouse_move)
       if (callback_mouse_move(*this,mouse_x,mouse_y))
@@ -803,11 +807,12 @@ namespace viewer
       return false;
 
 #ifdef ENABLE_SERIALIZATION
-
-    igl::serialize(core,"Core",fname.c_str(),true);
+    igl::serialize(core_l,"Core_l",fname.c_str(),true);
+    igl::serialize(core_r,"Core_r",fname.c_str(),true);
 
 #ifndef ENABLE_SERIALIZATION_CORE_ONLY
-    igl::serialize(data,"Data",fname.c_str());
+    igl::serialize(data_l,"Data_l",fname.c_str());
+    igl::serialize(data_r,"Data_r",fname.c_str());
     for(unsigned int i = 0; i <plugins.size(); ++i)
       igl::serialize(*plugins[i],plugins[i]->plugin_name,fname.c_str());
 #endif
@@ -830,10 +835,11 @@ namespace viewer
   {
 #ifdef ENABLE_SERIALIZATION
 
-    igl::deserialize(core,"Core",fname.c_str());
-
+    igl::deserialize(core_l,"Core_l",fname.c_str());
+    igl::deserialize(core_r,"Core_r",fname.c_str());
 #ifndef ENABLE_SERIALIZATION_CORE_ONLY
-    igl::deserialize(data,"Data",fname.c_str());
+    igl::deserialize(data_l,"Data_l",fname.c_str());
+    igl::deserialize(data_r,"Data_r",fname.c_str());
     for(unsigned int i = 0; i <plugins.size(); ++i)
       igl::deserialize(*plugins[i],plugins[i]->plugin_name,fname.c_str());
 #endif
@@ -845,8 +851,8 @@ namespace viewer
 
   IGL_INLINE void Viewer::resize(int w,int h)
   {
-    core_l.viewport = Eigen::Vector4f(0,0,w,h);
-    core_r.viewport = Eigen::Vector4f(0,0,w,h);
+    core_l.viewport = Eigen::Vector4f(0,0,w/2,h);
+    core_r.viewport = Eigen::Vector4f(w/2,0,w/2,h);
   }
 
   IGL_INLINE void Viewer::snap_to_canonical_quaternion()
@@ -1015,7 +1021,8 @@ namespace viewer
   {
     opengl_l.free();
     opengl_r.free();
-    core->shut();
+    core_l.shut();
+    core_r.shut();
 
     shutdown_plugins();
 #ifdef IGL_VIEWER_WITH_NANOGUI

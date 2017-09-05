@@ -27,6 +27,8 @@
 #include "ViewerData.h"
 #include "ViewerPlugin.h"
 
+#include <nanogui/formhelper.h>
+
 #define IGL_MOD_SHIFT           0x0001
 #define IGL_MOD_CONTROL         0x0002
 #define IGL_MOD_ALT             0x0004

@@ -14,7 +14,6 @@
 #include <igl/material_colors.h>
 #include <igl/parula.h>
 #include <igl/per_vertex_normals.h>
-
 #ifdef ENABLE_SERIALIZATION
 #include <igl/serialize.h>
 namespace igl {
