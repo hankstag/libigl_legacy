@@ -139,6 +139,8 @@ namespace viewer
 
     // Helper functions
     IGL_INLINE void snap_to_canonical_quaternion();
+    IGL_INLINE void snap_to_canonical_quaternion_left_view();
+    IGL_INLINE void snap_to_canonical_quaternion_right_view();
     IGL_INLINE void open_dialog_load_mesh();
     IGL_INLINE void open_dialog_save_mesh();
 

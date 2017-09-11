@@ -99,7 +99,6 @@ namespace igl
         const Eigen::VectorXd& b,
         Eigen::VectorXd& sol
     ){
-      std::cout<<bi.rows()<<std::endl;
       if(bi.rows()==0){
         Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> solver;
         sol = solver.compute(H).solve(c);
@@ -122,7 +121,6 @@ namespace igl
       for(int i=0;i<bi.rows();i++){
         sol(bi(i)) = b(i);
       }
-      //  std::cout << "The size of new_A is "<<std::endl<<new_A.rows()<<","<<new_A.cols()<<std::endl;
     }
 
     IGL_INLINE void compute_jacobians(igl::SLIMData& s, const Eigen::MatrixXd &uv)

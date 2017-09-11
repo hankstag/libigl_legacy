@@ -219,47 +219,47 @@ namespace viewer
     ngui->addButton("Save",[&](){this->open_dialog_save_mesh();});
   #endif
 
-    ngui->addGroup("Viewing Options");
+    //ngui->addGroup("Viewing Options");
     //* left & right
-    ngui->addButton("Center object",[&](){this->core->align_camera_center(this->data->V,this->data->F);});
-    ngui->addButton("Snap canonical view",[&]()
-    {
-      this->snap_to_canonical_quaternion();
-    });
+    //ngui->addButton("Center object",[&](){this->core->align_camera_center(this->data->V,this->data->F);});
+//    ngui->addButton("Snap canonical view",[&]()
+//    {
+//      this->snap_to_canonical_quaternion();
+//    });
     //* left & right
-    ngui->addVariable("Zoom", core->camera_zoom);
-    ngui->addVariable("Orthographic view", core->orthographic);
+//    ngui->addVariable("Zoom", core->camera_zoom);
+//    ngui->addVariable("Orthographic view", core->orthographic);
+//
+//    ngui->addGroup("Draw options");
 
-    ngui->addGroup("Draw options");
-
-    ngui->addVariable<bool>("Face-based", [&](bool checked)
-    {
-      this->data->set_face_based(checked);
-    },[&]()
-    {
-      return this->data->face_based;
-    });
+//    ngui->addVariable<bool>("Face-based", [&](bool checked)
+//    {
+//      this->data->set_face_based(checked);
+//    },[&]()
+//    {
+//      return this->data->face_based;
+//    });
     //* left & right
-    ngui->addVariable("Show texture",core->show_texture);
-
-    ngui->addVariable<bool>("Invert normals",[&](bool checked)
-    {
-      this->data->dirty |= ViewerData::DIRTY_NORMAL;
-      this->core->invert_normals = checked;
-    },[&]()
-    {
-      return this->core->invert_normals;
-    });
+//    ngui->addVariable("Show texture",core->show_texture);
+//
+//    ngui->addVariable<bool>("Invert normals",[&](bool checked)
+//    {
+//      this->data->dirty |= ViewerData::DIRTY_NORMAL;
+//      this->core->invert_normals = checked;
+//    },[&]()
+//    {
+//      return this->core->invert_normals;
+//    });
     //* left & right
-    ngui->addVariable("Show overlay", core->show_overlay);
-    ngui->addVariable("Show overlay depth", core->show_overlay_depth);
-    ngui->addVariable("Background", (nanogui::Color &) core->background_color);
-    ngui->addVariable("Line color", (nanogui::Color &) core->line_color);
-    ngui->addVariable("Shininess", core->shininess);
-
-    ngui->addGroup("Overlays");
-    ngui->addVariable("Wireframe", core->show_lines);
-    ngui->addVariable("Fill", core->show_faces);
+//    ngui->addVariable("Show overlay", core->show_overlay);
+//    ngui->addVariable("Show overlay depth", core->show_overlay_depth);
+//    ngui->addVariable("Background", (nanogui::Color &) core->background_color);
+//    ngui->addVariable("Line color", (nanogui::Color &) core->line_color);
+//    ngui->addVariable("Shininess", core->shininess);
+//
+//    ngui->addGroup("Overlays");
+//    ngui->addVariable("Wireframe", core->show_lines);
+//    ngui->addVariable("Fill", core->show_faces);
     ngui->addVariable("Show vertex labels on left", core_l.show_vertid);
     ngui->addVariable("Show vertex labels on right", core_r.show_vertid);
     ngui->addVariable("Show left faces labels", core_l.show_faceid);
@@ -783,9 +783,8 @@ namespace viewer
       if (plugins[i]->pre_draw())
         return;
 
-    core_l.draw(true,data_l,opengl_l);
-    core_r.draw(false,data_r,opengl_r);
-
+    core_l.draw(data_l,opengl_l);
+    core_r.draw(data_r,opengl_r);
     if (callback_post_draw)
       if (callback_post_draw(*this))
         return;
@@ -859,6 +858,16 @@ namespace viewer
   {
     Eigen::Quaternionf snapq = this->core->trackball_angle;
     igl::snap_to_canonical_view_quat(snapq,1.0f,this->core->trackball_angle);
+  }
+
+  IGL_INLINE void Viewer::snap_to_canonical_quaternion_left_view(){
+    Eigen::Quaternionf snapq = this->core_l.trackball_angle;
+    igl::snap_to_canonical_view_quat(snapq,1.0f,this->core_l.trackball_angle);
+  }
+
+  IGL_INLINE void Viewer::snap_to_canonical_quaternion_right_view(){
+    Eigen::Quaternionf snapq = this->core_r.trackball_angle;
+    igl::snap_to_canonical_view_quat(snapq,1.0f,this->core_r.trackball_angle);
   }
 
   IGL_INLINE void Viewer::open_dialog_load_mesh()
@@ -968,18 +977,13 @@ namespace viewer
     highdpi = width/width_window;
 
     glfw_window_size(window,width_window,height_window);
-	// glViewport(200,200,100,100);
-	// glScissor(200,200,100,100);
-	// glEnable(GL_SCISSOR_TEST);
-	// glClear(GL_COLOR_BUFFER_BIT);
     opengl_r.init();
     opengl_l.init();
 
-    core_l.align_camera_center(data_l.V,data_l.F);
-    core_r.align_camera_center(data_r.V,data_r.F);
-
     // Initialize IGL viewer
     init();
+//    core_l.align_camera_center(data_l.V,data_l.F);
+//    core_r.align_camera_center(data_r.V,data_r.F);
     return EXIT_SUCCESS;
   }
 
@@ -992,8 +996,6 @@ namespace viewer
     {
       double tic = get_seconds();
       draw();
-			// std::cout<<"after draw"<<std::endl;
-			// std::cout<<core->model<<std::endl;
       glfwSwapBuffers(window);
       if(core->is_animating)
       {
