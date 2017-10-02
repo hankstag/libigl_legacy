@@ -28,6 +28,7 @@ namespace igl
   // Returns the energy at the new point 'x'
   IGL_INLINE double line_search(
     Eigen::MatrixXd& x,
+    const Eigen::MatrixXi& F,
     const Eigen::MatrixXd& d,
     double i_step_size,
     std::function<double(Eigen::MatrixXd&)> energy,
