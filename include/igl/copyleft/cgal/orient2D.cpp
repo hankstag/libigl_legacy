@@ -35,3 +35,7 @@ IGL_INLINE short igl::copyleft::cgal::orient2D(
       throw "Invalid orientation";
   }
 }
+#ifdef IGL_STATIC_LIBRARY
+// Explicit template instantiation
+template short igl::copyleft::cgal::orient2D<double>(double const*, double const*, double const*);
+#endif

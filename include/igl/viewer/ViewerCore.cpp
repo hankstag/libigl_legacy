@@ -270,8 +270,9 @@ IGL_INLINE void igl::viewer::ViewerCore::draw(
     if (show_vertid)
     {
       textrenderer.BeginDraw(view*model, proj, viewport, object_scale);
-      for (int i=0; i<data.V.rows(); ++i)
-        textrenderer.DrawText(data.V.row(i),data.V_normals.row(i),to_string(i));
+      for (int i=0; i<data.V.rows(); ++i) {
+        textrenderer.DrawText(data.V.row(i), data.V_normals.row(i), to_string(i));
+      }
       textrenderer.EndDraw();
     }
 

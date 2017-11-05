@@ -156,12 +156,12 @@ namespace igl
 
       // add new vertices
       int offset = V.rows();
-      V.derived().conservativeResize(offset+sharedFIds.size()-2,3);
+      V.derived().conservativeResize(offset+sharedFIds.size()-2,V.cols());
       cutVertices.push_back(std::vector<typename DerivedI::Scalar>());
       cutVertices.back().push_back(cutVerexIds[h]);
       for(int i=1;i<sharedFIds.size()-1;i++)
       {
-        V.row(offset+i-1) = V.row(cutVerexIds[h]);// +RowVec3S::Random()*0.01;
+        V.row(offset+i-1) = V.row(cutVerexIds[h]).array();
         cutVertices.back().push_back(offset+i-1);
       }
 

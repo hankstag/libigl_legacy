@@ -38,6 +38,7 @@ namespace igl
     const Eigen::VectorXi & EMAP,
     Eigen::MatrixXi & EF,
     Eigen::MatrixXi & EI);
+
   // Only faces as input
   IGL_INLINE void edge_flaps(
     const Eigen::MatrixXi & F,
@@ -45,6 +46,27 @@ namespace igl
     Eigen::VectorXi & EMAP,
     Eigen::MatrixXi & EF,
     Eigen::MatrixXi & EI);
+  IGL_INLINE void edge_flaps(
+    const Eigen::MatrixXi & F,
+    const Eigen::MatrixXi & E,
+    const Eigen::MatrixXi & allE,
+    const Eigen::VectorXi & EMAP,
+    Eigen::MatrixXi & EF,
+    Eigen::MatrixXi & EI,
+    Eigen::MatrixXi & EF_d,
+    Eigen::MatrixXi & EI_d);
+
+    IGL_INLINE void edge_flaps(
+            const Eigen::MatrixXi & F,
+            Eigen::MatrixXi & E,
+            Eigen::MatrixXi & allE,
+            Eigen::VectorXi & EMAP,
+            Eigen::MatrixXi & EF,
+            Eigen::MatrixXi & EI,
+            Eigen::MatrixXi & dEF,
+            Eigen::MatrixXi & dEI,
+            Eigen::VectorXi & EE);
+
 }
 #ifndef IGL_STATIC_LIBRARY
 #  include "edge_flaps.cpp"

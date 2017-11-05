@@ -136,9 +136,8 @@ namespace igl
           Afc.makeCompressed();
           Aff.makeCompressed();
           new_rhs = new_rhs-Afc*xc;
-          Eigen::SparseLU<Eigen::SparseMatrix<double>> solver(Aff);
-          Eigen::VectorXd xf = solver.solve(new_rhs);
-          Eigen::VectorXd p = Aff*xf-new_rhs;
+          Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+          Eigen::VectorXd xf = solver.compute(Aff).solve(new_rhs);
           sol.resize(C);
           for(int i=0;i<ci.rows();i++) // constant
               sol(ci(i))=xc(i);
@@ -489,7 +488,7 @@ namespace igl
                                         const Eigen::MatrixXi &F,
                                         Eigen::MatrixXd &uv,
                                         Eigen::VectorXi &soft_b_p,
-                                        Eigen::MatrixXd &soft_bc_p,bool use_lag)
+                                        Eigen::MatrixXd &soft_bc_p)
     {
       using namespace Eigen;
 
@@ -514,11 +513,6 @@ namespace igl
             for(int r=0;r<b.rows();r++){
                 Aeq.insert(r,b(r))=1;
             }
-          VectorXd xx;
-          if(use_lag){
-            solve_lagrange(L,Aeq,s.rhs,b,bc,xx);
-            Uc=xx.block(0,0,s.dim*V.rows(),1);
-          }else
             solve(L,bc,s.rhs,b,Uc);
         }
       }
@@ -988,7 +982,9 @@ IGL_INLINE void igl::slim_precompute(
   Eigen::MatrixXd &bc,
   double soft_p,
   bool is_hard_cstr,
-  Eigen::VectorXd& E)
+  Eigen::VectorXd& E,
+  double exp_factor
+)
 {
 
   data.V = V;
@@ -1011,7 +1007,7 @@ IGL_INLINE void igl::slim_precompute(
   data.M /= 2.;
   data.mesh_area = data.M.sum();
   data.mesh_improvement_3d = false; // whether to use a jacobian derived from a real mesh or an abstract regular mesh (used for mesh improvement)
-  data.exp_factor = 1.0; // param used only for exponential energies (e.g exponential symmetric dirichlet)
+  data.exp_factor = exp_factor; // param used only for exponential energies (e.g exponential symmetric dirichlet)
 
   assert (F.cols() == 3 || F.cols() == 4);
 
@@ -1019,7 +1015,7 @@ IGL_INLINE void igl::slim_precompute(
   data.energy = igl::slim::compute_energy(data,data.V_o,E) / data.mesh_area;
 }
 
-IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::VectorXd& E, bool use_lag)
+IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::VectorXd& E)
 {
   for (int i = 0; i < iter_num; i++)
   {
@@ -1028,15 +1024,21 @@ IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::
 
     // Solve Weighted Proxy
     igl::slim::update_weights_and_closest_rotations(data,data.V, data.F, dest_res);
-    igl::slim::solve_weighted_arap(data,data.V, data.F, dest_res, data.b, data.bc,use_lag);
+    igl::slim::solve_weighted_arap(data,data.V, data.F, dest_res, data.b, data.bc);
 
     double old_energy = data.energy;
 
     std::function<double(Eigen::MatrixXd &)> compute_energy = [&](
         Eigen::MatrixXd &aaa) { return igl::slim::compute_energy(data,aaa,E); };
-
+    std::cout<<"using factor "<<data.exp_factor<<std::endl;
     data.energy = igl::flip_avoiding_line_search(data.F, data.V_o, dest_res, compute_energy,
                                                  data.energy * data.mesh_area) / data.mesh_area;
+    std::cout<<"slim energy "<<data.energy<<std::endl;
+    if(data.slim_energy == igl::SLIMData::EXP_CONFORMAL || data.slim_energy == igl::SLIMData::EXP_SYMMETRIC_DIRICHLET) {
+      if (std::isnan(data.energy) || std::isinf(data.energy)) {
+        data.exp_factor /= 2;
+      }
+    }
   }
   return data.V_o;
 }

@@ -27,12 +27,12 @@ IGL_INLINE double igl::line_search(
   assert(!std::isinf(old_energy) && !std::isnan(old_energy));
   double new_energy = old_energy;
   int cur_iter = 0;
-  int MAX_STEP_SIZE_ITER = 40;
+  int MAX_STEP_SIZE_ITER = 50;
 
   while (new_energy >= old_energy) {
     if (cur_iter > MAX_STEP_SIZE_ITER) {
             std::cout << "line_search.cpp runs out of iterations! " << std::endl;
-      step_size = 0;
+      break;
     }
 
     Eigen::MatrixXd new_x = x + step_size * d;
@@ -43,12 +43,12 @@ IGL_INLINE double igl::line_search(
     if(x.cols()==2) {
       Eigen::Vector3d a, b;
       assert(F.rows() > 0);
-      a = new_x.row(F(0, 0)) - new_x.row(F(0, 1)), 0;
-      b = new_x.row(F(0, 0)) - new_x.row(F(0, 2)), 0;
+      a << (new_x.row(F(0, 0)) - new_x.row(F(0, 1))).transpose(), 0;
+      b << (new_x.row(F(0, 0)) - new_x.row(F(0, 2))).transpose(), 0;
       double k = a.cross(b)(2);
       for (int i = 0; i < F.rows(); i++) {
-        a = new_x.row(F(i, 0)) - new_x.row(F(i, 1)), 0;
-        b = new_x.row(F(i, 0)) - new_x.row(F(i, 2)), 0;
+        a << (new_x.row(F(i, 0)) - new_x.row(F(i, 1))).transpose(), 0;
+        b << (new_x.row(F(i, 0)) - new_x.row(F(i, 2))).transpose(), 0;
         double o = a.cross(b)(2);
         if ((o > 0 && k < 0) || (o < 0 && k > 0)) {
           flipped = true;

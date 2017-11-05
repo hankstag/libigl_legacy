@@ -107,6 +107,7 @@ void igl::collapse_small_triangles(
         {
           if(rF(f,i)==rF(f,j))
           {
+            cout<<"collapse face "<<f<<endl;
             collapsed = true;
             num_face_collapses++;
             break;

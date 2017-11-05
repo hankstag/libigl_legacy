@@ -85,13 +85,14 @@ IGL_INLINE void slim_precompute(
   Eigen::MatrixXd& bc,
   double soft_p,
   bool is_hard_cstr,
-  Eigen::VectorXd& E
+  Eigen::VectorXd& E,
+  double exp_factor
 );
 
 // Run iter_num iterations of SLIM
 // Outputs:
 //    V_o (in SLIMData): #V by dim list of mesh vertex positions
-IGL_INLINE Eigen::MatrixXd slim_solve(SLIMData& data, int iter_num,Eigen::VectorXd& E,bool);
+IGL_INLINE Eigen::MatrixXd slim_solve(SLIMData& data, int iter_num,Eigen::VectorXd& E);
 
 } // END NAMESPACE
 
