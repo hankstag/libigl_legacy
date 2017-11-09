@@ -1030,14 +1030,22 @@ IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::
 
     std::function<double(Eigen::MatrixXd &)> compute_energy = [&](
         Eigen::MatrixXd &aaa) { return igl::slim::compute_energy(data,aaa,E); };
-    std::cout<<"using factor "<<data.exp_factor<<std::endl;
+
     data.energy = igl::flip_avoiding_line_search(data.F, data.V_o, dest_res, compute_energy,
                                                  data.energy * data.mesh_area) / data.mesh_area;
     std::cout<<"slim energy "<<data.energy<<std::endl;
     if(data.slim_energy == igl::SLIMData::EXP_CONFORMAL || data.slim_energy == igl::SLIMData::EXP_SYMMETRIC_DIRICHLET) {
-      if (std::isnan(data.energy) || std::isinf(data.energy)) {
-        data.exp_factor /= 2;
+      while (std::isnan(data.energy) || std::isinf(data.energy)) {
+          std::cout<<"using factor "<<data.exp_factor<<std::endl;
+          data.exp_factor /= 5;
+          data.energy = igl::flip_avoiding_line_search(data.F, data.V_o, dest_res, compute_energy,
+                                                       data.energy * data.mesh_area) / data.mesh_area;
       }
+      if(data.exp_iter>50){
+        data.exp_factor *= 2;
+        data.exp_iter = 0;
+      }
+      data.exp_iter++;
     }
   }
   return data.V_o;

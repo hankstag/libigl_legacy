@@ -47,6 +47,7 @@ struct SLIMData
   double energy; // objective value
 
   // INTERNAL
+  int exp_iter=0;
   Eigen::VectorXd M;
   double mesh_area;
   double avg_edge_length;
