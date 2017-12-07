@@ -1025,7 +1025,7 @@ IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::
     // Solve Weighted Proxy
     igl::slim::update_weights_and_closest_rotations(data,data.V, data.F, dest_res);
     igl::slim::solve_weighted_arap(data,data.V, data.F, dest_res, data.b, data.bc);
-
+   
     double old_energy = data.energy;
 
     std::function<double(Eigen::MatrixXd &)> compute_energy = [&](
@@ -1033,15 +1033,16 @@ IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::
 
     data.energy = igl::flip_avoiding_line_search(data.F, data.V_o, dest_res, compute_energy,
                                                  data.energy * data.mesh_area) / data.mesh_area;
+    //std::cout.precision(17);
     std::cout<<"slim energy "<<data.energy<<std::endl;
     if(data.slim_energy == igl::SLIMData::EXP_CONFORMAL || data.slim_energy == igl::SLIMData::EXP_SYMMETRIC_DIRICHLET) {
-      while (std::isnan(data.energy) || std::isinf(data.energy)) {
+      while (std::isnan(data.energy) || std::isinf(data.energy) || (data.energy > 1e40)) {
           std::cout<<"using factor "<<data.exp_factor<<std::endl;
           data.exp_factor /= 5;
           data.energy = igl::flip_avoiding_line_search(data.F, data.V_o, dest_res, compute_energy,
                                                        data.energy * data.mesh_area) / data.mesh_area;
       }
-      if(data.exp_iter>50){
+      if(data.exp_iter>20){
         data.exp_factor *= 2;
         data.exp_iter = 0;
       }
