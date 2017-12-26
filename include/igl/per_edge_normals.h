@@ -40,10 +40,10 @@ namespace igl
     typename DerivedE,
     typename DerivedEMAP>
   IGL_INLINE void per_edge_normals(
-    const Eigen::MatrixBase<DerivedV>& V,
-    const Eigen::MatrixBase<DerivedF>& F,
+    const Eigen::PlainObjectBase<DerivedV>& V,
+    const Eigen::PlainObjectBase<DerivedF>& F,
     const PerEdgeNormalsWeightingType weight,
-    const Eigen::MatrixBase<DerivedFN>& FN,
+    const Eigen::PlainObjectBase<DerivedFN>& FN,
     Eigen::PlainObjectBase<DerivedN> & N,
     Eigen::PlainObjectBase<DerivedE> & E,
     Eigen::PlainObjectBase<DerivedEMAP> & EMAP);
@@ -54,8 +54,8 @@ namespace igl
     typename DerivedE,
     typename DerivedEMAP>
   IGL_INLINE void per_edge_normals(
-    const Eigen::MatrixBase<DerivedV>& V,
-    const Eigen::MatrixBase<DerivedF>& F,
+    const Eigen::PlainObjectBase<DerivedV>& V,
+    const Eigen::PlainObjectBase<DerivedF>& F,
     const PerEdgeNormalsWeightingType weight,
     Eigen::PlainObjectBase<DerivedN> & N,
     Eigen::PlainObjectBase<DerivedE> & E,
@@ -67,8 +67,8 @@ namespace igl
     typename DerivedE,
     typename DerivedEMAP>
   IGL_INLINE void per_edge_normals(
-    const Eigen::MatrixBase<DerivedV>& V,
-    const Eigen::MatrixBase<DerivedF>& F,
+    const Eigen::PlainObjectBase<DerivedV>& V,
+    const Eigen::PlainObjectBase<DerivedF>& F,
     Eigen::PlainObjectBase<DerivedN> & N,
     Eigen::PlainObjectBase<DerivedE> & E,
     Eigen::PlainObjectBase<DerivedEMAP> & EMAP);

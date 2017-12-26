@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(libigl)
 
-message(DEPRECATION "shared/cmake/CMakeLists.txt is deprecated. Use libigl.cmake instead.")
-
 ### Available options ###
 option(LIBIGL_USE_STATIC_LIBRARY    "Use libigl as static library" OFF)
 option(LIBIGL_WITH_ANTTWEAKBAR      "Use AntTweakBar"    OFF)
@@ -63,17 +61,9 @@ set(LIBIGL_EXTERNAL "${LIBIGL_ROOT}/external")
 set(EIGEN_INCLUDE_DIR "${LIBIGL_EXTERNAL}/nanogui/ext/eigen")
 list(APPEND LIBIGL_INCLUDE_DIRS "${EIGEN_INCLUDE_DIR}")
 
-<<<<<<< HEAD
 macro(CompileIGL_Module module)
   file(GLOB SOURCES_IGL_${module}
   "${LIBIGL_SOURCE_DIR}/igl/${module}/*.cpp"
-=======
-macro(CompileIGL_Module module_dir )
-  string(REPLACE "/" "_" module_name "${module_dir}")
-  file(GLOB SOURCES_IGL_${module_name}
-  "${LIBIGL_SOURCE_DIR}/igl/${module_dir}/*.cpp"
-  "${LIBIGL_SOURCE_DIR}/igl/copyleft/${module_dir}/*.cpp"
->>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
   )
   add_library(igl${module} STATIC ${SOURCES_IGL_${module}})
   target_include_directories(igl${module} PRIVATE ${EIGEN_INCLUDE_DIR})
@@ -110,7 +100,7 @@ endif()
 
 ### Compile the AntTweakBar part ###
 if(LIBIGL_WITH_ANTTWEAKBAR)
-  set(ANTTWEAKBAR_DIR "${LIBIGL_EXTERNAL}/AntTweakBar")
+  set(ANTTWEAKBAR_DIR "${LIBIGL_EXTERNAL}/anttweakbar")
   set(ANTTWEAKBAR_INCLUDE_DIR "${ANTTWEAKBAR_DIR}/include")
   set(ANTTWEAKBAR_C_SRC_FILES
     "${ANTTWEAKBAR_DIR}/src/TwEventGLFW.c"
@@ -192,13 +182,8 @@ if(LIBIGL_WITH_CGAL) # to be cleaned
   list(APPEND LIBIGL_CGAL_EXTRA_LIBRARIES ${CGAL_LIBRARIES})
   list(APPEND LIBIGL_EXTRA_LIBRARIES ${LIBIGL_CGAL_EXTRA_LIBRARIES})
   if(LIBIGL_USE_STATIC_LIBRARY)
-<<<<<<< HEAD
     CompileIGL_Module_Copyleft("cgal")
     target_include_directories(iglcgal PRIVATE
-=======
-    CompileIGL_Module("cgal")
-    target_include_directories(igl_cgal PRIVATE
->>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
       ${CGAL_3RD_PARTY_INCLUDE_DIRS}
       ${CGAL_INCLUDE_DIRS})
   endif()
@@ -246,15 +231,9 @@ if(LIBIGL_WITH_COMISO)
         "${CMAKE_CURRENT_BINARY_DIR}/../libquadmath-0.dll")
   endif()
   if(LIBIGL_USE_STATIC_LIBRARY)
-<<<<<<< HEAD
     CompileIGL_Module_Copyleft("comiso")
     target_include_directories(iglcomiso PRIVATE ${COMISO_INCLUDE_DIRS})
     target_compile_definitions(iglcomiso PRIVATE -DINCLUDE_TEMPLATES)
-=======
-    CompileIGL_Module("comiso")
-    target_include_directories(igl_comiso PRIVATE ${COMISO_INCLUDE_DIRS})
-    target_compile_definitions(igl_comiso PRIVATE -DINCLUDE_TEMPLATES)
->>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
   endif()
 endif()
 
@@ -269,14 +248,9 @@ if(LIBIGL_WITH_CORK)
   list(APPEND LIBIGL_CORK_EXTRA_LIBRARIES "cork")
   list(APPEND LIBIGL_EXTRA_LIBRARIES ${LIBIGL_CORK_EXTRA_LIBRARIES})
   if(LIBIGL_USE_STATIC_LIBRARY)
-<<<<<<< HEAD
     CompileIGL_Module_Copyleft("cork")
     target_include_directories(iglcork PRIVATE
       ${CORK_INCLUDE_DIR})
-=======
-    CompileIGL_Module("cork")
-    target_include_directories(igl_cork PRIVATE ${CORK_INCLUDE_DIR})
->>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
   endif()
 endif()
 
@@ -372,17 +346,11 @@ if(LIBIGL_WITH_PNG)
   set(STB_IMAGE_DIR "${LIBIGL_EXTERNAL}/stb_image")
   add_subdirectory("${STB_IMAGE_DIR}" "stb_image")
   list(APPEND LIBIGL_INCLUDE_DIRS ${STB_IMAGE_DIR})
-  list(APPEND LIBIGL_PNG_EXTRA_LIBRARIES "igl_stb_image")
+  list(APPEND LIBIGL_PNG_EXTRA_LIBRARIES "stb_image")
   list(APPEND LIBIGL_EXTRA_LIBRARIES ${LIBIGL_PNG_EXTRA_LIBRARIES})
   if(LIBIGL_USE_STATIC_LIBRARY)
-<<<<<<< HEAD
     CompileIGL_Module("png")
     target_include_directories(iglpng PRIVATE ${STB_IMAGE_DIR})
-=======
-    CompileIGL_Module("png" "")
-    target_link_libraries(igl_png PRIVATE igl_stb_image)
-    target_include_directories(igl_png PRIVATE ${STB_IMAGE_DIR})
->>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
     if(NOT APPLE)
       target_include_directories(iglpng PRIVATE "${LIBIGL_EXTERNAL}/nanogui/ext/glew/include")
     endif()
@@ -398,13 +366,8 @@ if(LIBIGL_WITH_TETGEN)
   list(APPEND LIBIGL_EXTRA_LIBRARIES ${LIBIGL_TETGEN_EXTRA_LIBRARIES})
 
   if(LIBIGL_USE_STATIC_LIBRARY)
-<<<<<<< HEAD
     CompileIGL_Module_Copyleft("tetgen")
     target_include_directories(igltetgen PRIVATE ${TETGEN_DIR})
-=======
-    CompileIGL_Module("tetgen")
-    target_include_directories(igl_tetgen PRIVATE ${TETGEN_DIR})
->>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
   endif()
 endif()
 

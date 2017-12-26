@@ -32,10 +32,10 @@ namespace igl
         typename DerivedFC,
         typename DerivedJ>
       IGL_INLINE bool intersect_with_half_space(
-        const Eigen::MatrixBase<DerivedV > & V,
-        const Eigen::MatrixBase<DerivedF > & F,
-        const Eigen::MatrixBase<Derivedp > & p,
-        const Eigen::MatrixBase<Derivedn > & n,
+        const Eigen::PlainObjectBase<DerivedV > & V,
+        const Eigen::PlainObjectBase<DerivedF > & F,
+        const Eigen::PlainObjectBase<Derivedp > & p,
+        const Eigen::PlainObjectBase<Derivedn > & n,
         Eigen::PlainObjectBase<DerivedVC > & VC,
         Eigen::PlainObjectBase<DerivedFC > & FC,
         Eigen::PlainObjectBase<DerivedJ > & J);
@@ -57,9 +57,9 @@ namespace igl
         typename DerivedFC,
         typename DerivedJ>
       IGL_INLINE bool intersect_with_half_space(
-        const Eigen::MatrixBase<DerivedV > & V,
-        const Eigen::MatrixBase<DerivedF > & F,
-        const Eigen::MatrixBase<Derivedequ > & equ,
+        const Eigen::PlainObjectBase<DerivedV > & V,
+        const Eigen::PlainObjectBase<DerivedF > & F,
+        const Eigen::PlainObjectBase<Derivedequ > & equ,
         Eigen::PlainObjectBase<DerivedVC > & VC,
         Eigen::PlainObjectBase<DerivedFC > & FC,
         Eigen::PlainObjectBase<DerivedJ > & J);
@@ -79,8 +79,8 @@ namespace igl
         typename DerivedFC,
         typename DerivedJ>
       IGL_INLINE bool intersect_with_half_space(
-        const Eigen::MatrixBase<DerivedV > & V,
-        const Eigen::MatrixBase<DerivedF > & F,
+        const Eigen::PlainObjectBase<DerivedV > & V,
+        const Eigen::PlainObjectBase<DerivedF > & F,
         const CGAL::Plane_3<CGAL::Epeck> & P,
         Eigen::PlainObjectBase<DerivedVC > & VC,
         Eigen::PlainObjectBase<DerivedFC > & FC,

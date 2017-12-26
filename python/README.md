@@ -32,8 +32,7 @@ The cmake script will complain if it is not able to find python. In that case
 you can specify the location of the interpreter by specifying the following
 cmake variables.
 
-
-MacOSX:
+MacOSX/Linux:
 
 ```cmake
 SET(PYTHON_LIBRARIES "/usr/local/Cellar/python3/3.5.0/Frameworks/Python.framework/Versions/3.5/lib/libpython3.5m.dylib")
@@ -46,13 +45,6 @@ Windows:
 SET(PYTHON_LIBRARIES "C:/Python35/libs/python35.lib")
 SET(PYTHON_INCLUDE_DIR "C:/Python35/include")
 ```
-
-On Linux you may need to install the development version of python:
-
-```bash
-sudo apt-get install python-dev
-```
-
 
 ## Tutorial
 

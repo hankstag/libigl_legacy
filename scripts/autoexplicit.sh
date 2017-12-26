@@ -3,8 +3,7 @@
 while getopts ":C:h" opt; do
   case $opt in
     C)
-      CDIR="$OPTARG"
-      if ! cd "$CDIR" 2>/dev/null
+      if ! cd "$OPTARG" 2>/dev/null
       then
         (>&2 echo "Failed to change directory to $OPTARG")
         exit 1
@@ -45,7 +44,7 @@ while read line; do
   filename=`echo "$symbol" | perl -pe "s#.*?igl::([A-z0-9_:]*).*$'$'#\1#"`
   filename=`echo "$filename" | sed -e "s/::/\//g"`
   #echo "filename = $filename"
-  cpp="./include/igl/$filename.cpp"
+  cpp="$LIBIGL/include/igl/$filename.cpp"
   # append .cpp and check that file exists
   if [ ! -e "$cpp" ]
   then

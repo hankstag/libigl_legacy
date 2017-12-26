@@ -220,7 +220,7 @@ inline void ply_describe_property(PlyFile *, const char *, PlyProperty *);
 inline void ply_element_count(PlyFile *, const char *, int);
 inline void ply_header_complete(PlyFile *);
 inline void ply_put_element_setup(PlyFile *, const char *);
-inline void ply_put_element(PlyFile *, void *, int*);
+inline void ply_put_element(PlyFile *, void *);
 inline void ply_put_comment(PlyFile *, char *);
 inline void ply_put_obj_info(PlyFile *, char *);
 inline PlyFile *ply_read(FILE *, int *, char ***);
@@ -324,7 +324,6 @@ properly to target OSs with binary files.
 //#include "ply.h"
 
 // Use unnamed namespace to avoid duplicate symbols
-/*
 namespace
 {
 const char *type_names[] = {
@@ -334,8 +333,7 @@ const char *type_names[] = {
 "float", "double",
 };
 
-//  names of scalar types 
-const char *alt_type_names[] = { 
+const char *alt_type_names[] = {  /* names of scalar types */
 "invalid",
 "int8", "int16", "int32", "uint8", "uint16", "uint32", "float32", "float64",
 };
@@ -357,7 +355,6 @@ namespace
 static int native_binary_type = -1;
 static int types_checked = 0;
 }
-*/
 
 #define NO_OTHER_PROPS  -1
 
@@ -384,7 +381,7 @@ inline char **get_words(FILE *, int *, char **);
 inline char **old_get_words(FILE *, int *);
 
 /* write an item to a file */
-inline void write_binary_item(FILE *, int, int, unsigned int, double, int, int*);
+inline void write_binary_item(FILE *, int, int, unsigned int, double, int);
 inline void write_ascii_item(FILE *, int, unsigned int, double, int);
 inline double old_write_ascii_item(FILE *, char *, int);
 
@@ -408,20 +405,20 @@ inline double get_item_value(char *, int);
 
 /* get binary or ascii item and store it according to ptr and type */
 inline void get_ascii_item(char *, int, int *, unsigned int *, double *);
-inline void get_binary_item(FILE *, int, int, int *, unsigned int *, double *, int*);
+inline void get_binary_item(FILE *, int, int, int *, unsigned int *, double *);
 
 /* get a bunch of elements from a file */
 inline void ascii_get_element(PlyFile *, char *);
-inline void binary_get_element(PlyFile *, char *, int*);
+inline void binary_get_element(PlyFile *, char *);
 
 /* memory allocation */
 inline char *my_alloc(int, int, const char *);
 
 /* byte ordering */
-inline void get_native_binary_type(int*);
+inline void get_native_binary_type();
 inline void swap_bytes(char *, int);
 
-inline int check_types();
+inline void check_types();
 
 
 /*************/
@@ -456,13 +453,11 @@ inline PlyFile *ply_write(
   /* check for NULL file pointer */
   if (fp == NULL)
     return (NULL);
-	
-	int native_binary_type = -1;
-	int types_checked = 0;
+
   if (native_binary_type == -1)
-     native_binary_type = get_native_binary_type2();
+     get_native_binary_type();
   if (!types_checked)
-     types_checked = check_types();
+     check_types();
   
   /* create a record for this object */
 
@@ -821,7 +816,7 @@ inline void ply_put_element_setup(PlyFile *plyfile, const char *elem_name)
     fprintf(stderr, "ply_elements_setup: can't find element '%s'\n", elem_name);
     exit (-1);
   }
-	
+
   plyfile->which_elem = elem;
 }
 
@@ -836,7 +831,7 @@ Entry:
   elem_ptr - pointer to the element
 ******************************************************************************/
 
-inline void ply_put_element(PlyFile *plyfile, void *elem_ptr, int *native_binary_type)
+inline void ply_put_element(PlyFile *plyfile, void *elem_ptr)
 {
   int j,k;
   FILE *fp = plyfile->fp;
@@ -856,9 +851,6 @@ inline void ply_put_element(PlyFile *plyfile, void *elem_ptr, int *native_binary
   other_ptr = (char **) (((char *) elem_ptr) + elem->other_offset);
 
   /* write out either to an ascii or binary file */
-	int ply_type_size[] = {
-	  0, 1, 2, 4, 1, 2, 4, 4, 8
-	};
 
   if (plyfile->file_type == PLY_ASCII) {
 
@@ -917,7 +909,7 @@ inline void ply_put_element(PlyFile *plyfile, void *elem_ptr, int *native_binary
         get_stored_item ((void *) item, prop->count_internal,
                          &int_val, &uint_val, &double_val);
         write_binary_item (fp, plyfile->file_type, int_val, uint_val,
-			   double_val, prop->count_external, native_binary_type);
+			   double_val, prop->count_external);
         list_count = uint_val;
         item_ptr = (char **) (elem_data + prop->offset);
         item = item_ptr[0];
@@ -926,7 +918,7 @@ inline void ply_put_element(PlyFile *plyfile, void *elem_ptr, int *native_binary
           get_stored_item ((void *) item, prop->internal_type,
                            &int_val, &uint_val, &double_val);
           write_binary_item (fp, plyfile->file_type, int_val, uint_val,
-			     double_val, prop->external_type, native_binary_type);
+			     double_val, prop->external_type);
           item += item_size;
         }
       }
@@ -936,7 +928,7 @@ inline void ply_put_element(PlyFile *plyfile, void *elem_ptr, int *native_binary
         get_stored_item ((void *) item, prop->internal_type,
                          &int_val, &uint_val, &double_val);
         write_binary_item (fp, plyfile->file_type, int_val, uint_val,
-			   double_val, prop->external_type, native_binary_type);
+			   double_val, prop->external_type);
       }
     }
 
@@ -1027,14 +1019,11 @@ inline PlyFile *ply_read(FILE *fp, int *nelems, char ***elem_names)
   /* check for NULL file pointer */
   if (fp == NULL)
     return (NULL);
-	
-	int native_binary_type = -1;
-	int types_checked = 0;
-	
+
   if (native_binary_type == -1)
-     native_binary_type = get_native_binary_type2();
+     get_native_binary_type();
   if (!types_checked)
-     types_checked = check_types();
+     check_types();
   
   /* create record for this object */
 
@@ -1337,12 +1326,12 @@ Entry:
   elem_ptr - pointer to location where the element information should be put
 ******************************************************************************/
 
-inline void ply_get_element(PlyFile *plyfile, void *elem_ptr, int *native_binary_type)
+inline void ply_get_element(PlyFile *plyfile, void *elem_ptr)
 {
   if (plyfile->file_type == PLY_ASCII)
     ascii_get_element (plyfile, (char *) elem_ptr);
   else
-    binary_get_element (plyfile, (char *) elem_ptr, native_binary_type);
+    binary_get_element (plyfile, (char *) elem_ptr);
 }
 
 
@@ -1404,9 +1393,6 @@ inline void setup_other_props(PlyElement *elem)
   /* Examine each property in decreasing order of size. */
   /* We do this so that all data types will be aligned by */
   /* word, half-word, or whatever within the structure. */
-	int ply_type_size[] = {
-	  0, 1, 2, 4, 1, 2, 4, 4, 8
-	};
 
   for (type_size = 8; type_size > 0; type_size /= 2) {
 
@@ -1671,7 +1657,7 @@ Entry:
   plyfile - pointer to PLY file to write out other elements for
 ******************************************************************************/
 
-inline void ply_put_other_elements (PlyFile *plyfile, int *native_binary_type)
+inline void ply_put_other_elements (PlyFile *plyfile)
 {
   int i,j;
   OtherElem *other;
@@ -1689,7 +1675,7 @@ inline void ply_put_other_elements (PlyFile *plyfile, int *native_binary_type)
 
     /* write out each instance of the current element */
     for (j = 0; j < other->elem_count; j++)
-      ply_put_element (plyfile, (void *) other->other_data[j], native_binary_type);
+      ply_put_element (plyfile, (void *) other->other_data[j]);
   }
 }
 
@@ -1833,10 +1819,6 @@ Entry:
 
 inline void ascii_get_element(PlyFile *plyfile, char *elem_ptr)
 {
-	int ply_type_size[] = {
-	  0, 1, 2, 4, 1, 2, 4, 4, 8
-	};
-
   int j,k;
   PlyElement *elem;
   PlyProperty *prop;
@@ -1957,7 +1939,7 @@ Entry:
   elem_ptr - pointer to an element
 ******************************************************************************/
 
-inline void binary_get_element(PlyFile *plyfile, char *elem_ptr, int *native_binary_type)
+inline void binary_get_element(PlyFile *plyfile, char *elem_ptr)
 {
   int j,k;
   PlyElement *elem;
@@ -1974,11 +1956,6 @@ inline void binary_get_element(PlyFile *plyfile, char *elem_ptr, int *native_bin
   char **store_array;
   char *other_data=NULL;
   int other_flag;
-	
-	int ply_type_size[] = {
-	  0, 1, 2, 4, 1, 2, 4, 4, 8
-	};
-
 
   /* the kind of element we're reading currently */
   elem = plyfile->which_elem;
@@ -2014,7 +1991,7 @@ inline void binary_get_element(PlyFile *plyfile, char *elem_ptr, int *native_bin
 
       /* get and store the number of items in the list */
       get_binary_item (fp, plyfile->file_type, prop->count_external,
-                      &int_val, &uint_val, &double_val, native_binary_type);
+                      &int_val, &uint_val, &double_val);
       if (store_it) {
         item = elem_data + prop->count_offset;
         store_item(item, prop->count_internal, int_val, uint_val, double_val);
@@ -2040,7 +2017,7 @@ inline void binary_get_element(PlyFile *plyfile, char *elem_ptr, int *native_bin
         // read items and store them into the array  
         for (k = 0; k < list_count; k++) {
           get_binary_item (fp, plyfile->file_type, prop->external_type,
-                          &int_val, &uint_val, &double_val, native_binary_type);
+                          &int_val, &uint_val, &double_val);
           if (store_it) {
              store_item (item, prop->internal_type,
                        int_val, uint_val, double_val);
@@ -2055,7 +2032,7 @@ inline void binary_get_element(PlyFile *plyfile, char *elem_ptr, int *native_bin
     }
     else {                     /* not a list */
       get_binary_item (fp, plyfile->file_type, prop->external_type,
-                      &int_val, &uint_val, &double_val, native_binary_type);
+                      &int_val, &uint_val, &double_val);
       if (store_it) {
         item = elem_data + prop->offset;
         store_item (item, prop->internal_type, int_val, uint_val, double_val);
@@ -2084,13 +2061,6 @@ inline void write_scalar_type (FILE *fp, int code)
   }
 
   /* write the code to a file */
-	const char *type_names[] = {
-	"invalid",
-	"char", "short", "int",
-	"uchar", "ushort", "uint",
-	"float", "double",
-	};
-
 
   fprintf (fp, "%s", type_names[code]);
 }
@@ -2126,23 +2096,16 @@ inline void swap_bytes(char *bytes, int num_bytes)
 
 ******************************************************************************/
 
-inline void get_native_binary_type(int *native_binary_type)
+inline void get_native_binary_type()
 {
-    typedef union
-	{
-	      int  int_value;
-	      char byte_values[sizeof(int)];
-	} endian_test_type;
+    endian_test_type test;
 
-
-	endian_test_type test;
-     
-	test.int_value = 0;
+    test.int_value = 0;
     test.int_value = 1;
     if (test.byte_values[0] == 1)
-       *native_binary_type = PLY_BINARY_LE;
+       native_binary_type = PLY_BINARY_LE;
     else if (test.byte_values[sizeof(int)-1] == 1)
-       *native_binary_type = PLY_BINARY_BE;
+       native_binary_type = PLY_BINARY_BE;
     else
     {
 	fprintf(stderr, "ply: Couldn't determine machine endianness.\n");
@@ -2153,13 +2116,6 @@ inline void get_native_binary_type(int *native_binary_type)
 
 inline int get_native_binary_type2()
 {
-	typedef union
-	{
-	      int  int_value;
-	      char byte_values[sizeof(int)];
-	} endian_test_type;
-
-
     endian_test_type test;
 
     test.int_value = 0;
@@ -2182,12 +2138,8 @@ inline int get_native_binary_type2()
 
 ******************************************************************************/
 
-inline int check_types()
+inline void check_types()
 {
-	int ply_type_size[] = {
-	  0, 1, 2, 4, 1, 2, 4, 4, 8
-	};
-
     if ((ply_type_size[PLY_CHAR] != sizeof(char)) ||
 	(ply_type_size[PLY_SHORT] != sizeof(short)) ||	
 	(ply_type_size[PLY_INT] != sizeof(int)) ||	
@@ -2201,8 +2153,8 @@ inline int check_types()
 	fprintf(stderr, "ply: Exiting...\n");
 	exit(1);
     }
-
-	return 1;    
+    
+    types_checked = 1;
 }
 
 /******************************************************************************
@@ -2223,8 +2175,8 @@ Exit:
 inline char **get_words(FILE *fp, int *nwords, char **orig_line)
 {
   #define BIG_STRING 4096
-  char str[BIG_STRING];
-  char str_copy[BIG_STRING];
+  static char str[BIG_STRING];
+  static char str_copy[BIG_STRING];
   char **words;
   int max_words = 10;
   int num_words = 0;
@@ -2488,8 +2440,7 @@ inline void write_binary_item(
   int int_val,
   unsigned int uint_val,
   double double_val,
-  int type,
-  int *native_binary_type
+  int type
 )
 {
   unsigned char uchar_val;
@@ -2533,11 +2484,8 @@ inline void write_binary_item(
       fprintf (stderr, "write_binary_item: bad type = %d\n", type);
       exit (-1);
   }
-	int ply_type_size[] = {
-	  0, 1, 2, 4, 1, 2, 4, 4, 8
-	};
 
-  if ((file_type != *native_binary_type) && (ply_type_size[type] > 1))
+  if ((file_type != native_binary_type) && (ply_type_size[type] > 1))
      swap_bytes((char *)value, ply_type_size[type]);
   
   if (fwrite (value, ply_type_size[type], 1, fp) != 1)
@@ -2765,17 +2713,13 @@ inline void get_binary_item(
   int type,
   int *int_val,
   unsigned int *uint_val,
-  double *double_val,
-  int *native_binary_type
+  double *double_val
 )
 {
   char c[8];
   void *ptr;
 
   ptr = (void *) c;
-	int ply_type_size[] = {
-	  0, 1, 2, 4, 1, 2, 4, 4, 8
-	};
 
   if (fread (ptr, ply_type_size[type], 1, fp) != 1)
   {
@@ -2784,7 +2728,7 @@ inline void get_binary_item(
   }
   
 
-  if ((file_type != *native_binary_type) && (ply_type_size[type] > 1))
+  if ((file_type != native_binary_type) && (ply_type_size[type] > 1))
      swap_bytes((char *)ptr, ply_type_size[type]);
 
   switch (type) {
@@ -3002,18 +2946,6 @@ Exit:
 inline int get_prop_type(char *type_name)
 {
   int i;
-	const char *type_names[] = {
-	"invalid",
-	"char", "short", "int",
-	"uchar", "ushort", "uint",
-	"float", "double",
-	};
-	
-	const char *alt_type_names[] = { 
-	"invalid",
-	"int8", "int16", "int32", "uint8", "uint16", "uint32", "float32", "float64",
-	};
-
 
   for (i = PLY_START_TYPE + 1; i < PLY_END_TYPE; i++)
     if (equal_strings (type_name, type_names[i]))

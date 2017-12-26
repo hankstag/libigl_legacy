@@ -1,4 +1,5 @@
 #include <igl/readOFF.h>
+//#define IGL_NO_CORK
 //#undef IGL_STATIC_LIBRARY
 #include <igl/copyleft/cgal/mesh_boolean.h>
 #include <igl/viewer/Viewer.h>

@@ -22,10 +22,7 @@ namespace igl
   //     output
   // Outputs:
   //   S  flood fill data in place
-  template <typename Derivedres, typename DerivedS>
-  IGL_INLINE void flood_fill(
-    const Eigen::MatrixBase<Derivedres>& res, 
-    Eigen::PlainObjectBase<DerivedS> & S);
+  IGL_INLINE void flood_fill(const Eigen::RowVector3i& res, Eigen::VectorXd& S);
 }
 #ifndef IGL_STATIC_LIBRARY
 #  include "flood_fill.cpp"

@@ -15,7 +15,6 @@
 #include <sstream>
 
 #include "tutorial_shared_path.h"
-#include <igl/serialize.h>
 
 // Input mesh
 Eigen::MatrixXd V;
@@ -39,13 +38,13 @@ Eigen::MatrixXd BIS1, BIS2;
 Eigen::MatrixXd BIS1_combed, BIS2_combed;
 
 // Per-corner, integer mismatches
-Eigen::Matrix<int, Eigen::Dynamic, 3> MMatch;
+Eigen::MatrixXi MMatch;
 
 // Field singularities
-Eigen::Matrix<int, Eigen::Dynamic, 1> isSingularity, singularityIndex;
+Eigen::VectorXi isSingularity, singularityIndex;
 
 // Per corner seams
-Eigen::Matrix<int, Eigen::Dynamic, 3> Seams;
+Eigen::MatrixXi Seams;
 
 // Combed field
 Eigen::MatrixXd X1_combed, X2_combed;
@@ -235,50 +234,50 @@ int main(int argc, char *argv[])
   // Load a mesh in OFF format
   igl::readOFF(TUTORIAL_SHARED_PATH "/3holes.off", V, F);
 
-  double gradient_size = 50;
-  double iter = 0;
-  double stiffness = 5.0;
-  bool direct_round = 0;
-  std::string filename = "/Users/daniele/x.dat";
-
   // Compute face barycenters
   igl::barycenter(V, F, B);
 
   // Compute scale for visualizing fields
   global_scale =  .5*igl::avg_edge_length(V, F);
 
-    // Contrain one face
-    VectorXi b(1);
-    b << 0;
-    MatrixXd bc(1, 3);
-    bc << 1, 0, 0;
 
-    // Create a smooth 4-RoSy field
-    VectorXd S;
-    igl::copyleft::comiso::nrosy(V, F, b, bc, VectorXi(), VectorXd(), MatrixXd(), 4, 0.5, X1, S);
+  // Contrain one face
+  VectorXi b(1);
+  b << 0;
+  MatrixXd bc(1,3);
+  bc << 1, 0, 0;
 
-    // Find the the orthogonal vector
-    MatrixXd B1, B2, B3;
-    igl::local_basis(V, F, B1, B2, B3);
-    X2 = igl::rotate_vectors(X1, VectorXd::Constant(1, M_PI / 2), B1, B2);
+  // Create a smooth 4-RoSy field
+  VectorXd S;
+  igl::copyleft::comiso::nrosy(V,F,b,bc,VectorXi(),VectorXd(),MatrixXd(),4,0.5,X1,S);
 
-    // Always work on the bisectors, it is more general
-    igl::compute_frame_field_bisectors(V, F, X1, X2, BIS1, BIS2);
+  // Find the the orthogonal vector
+  MatrixXd B1,B2,B3;
+  igl::local_basis(V,F,B1,B2,B3);
+  X2 = igl::rotate_vectors(X1, VectorXd::Constant(1,M_PI/2), B1, B2);
 
-    // Comb the field, implicitly defining the seams
-    igl::comb_cross_field(V, F, BIS1, BIS2, BIS1_combed, BIS2_combed);
+  double gradient_size = 50;
+  double iter = 0;
+  double stiffness = 5.0;
+  bool direct_round = 0;
 
-    // Find the integer mismatches
-    igl::cross_field_missmatch(V, F, BIS1_combed, BIS2_combed, true, MMatch);
+  // Always work on the bisectors, it is more general
+  igl::compute_frame_field_bisectors(V, F, X1, X2, BIS1, BIS2);
 
-    // Find the singularities
-    igl::find_cross_field_singularities(V, F, MMatch, isSingularity, singularityIndex);
+  // Comb the field, implicitly defining the seams
+  igl::comb_cross_field(V, F, BIS1, BIS2, BIS1_combed, BIS2_combed);
 
-    // Cut the mesh, duplicating all vertices on the seams
-    igl::cut_mesh_from_singularities(V, F, MMatch, Seams);
+  // Find the integer mismatches
+  igl::cross_field_missmatch(V, F, BIS1_combed, BIS2_combed, true, MMatch);
 
-    // Comb the frame-field accordingly
-    igl::comb_frame_field(V, F, X1, X2, BIS1_combed, BIS2_combed, X1_combed, X2_combed);
+  // Find the singularities
+  igl::find_cross_field_singularities(V, F, MMatch, isSingularity, singularityIndex);
+
+  // Cut the mesh, duplicating all vertices on the seams
+  igl::cut_mesh_from_singularities(V, F, MMatch, Seams);
+
+  // Comb the frame-field accordingly
+  igl::comb_frame_field(V, F, X1, X2, BIS1_combed, BIS2_combed, X1_combed, X2_combed);
 
   // Global parametrization
   igl::copyleft::comiso::miq(V,

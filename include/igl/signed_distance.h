@@ -32,8 +32,6 @@ namespace igl
   //   F  #F by ss list of triangle indices, ss should be 3 unless sign_type ==
   //     SIGNED_DISTANCE_TYPE_UNSIGNED
   //   sign_type  method for computing distance _sign_ S
-  //   lower_bound  lower bound of distances needed {std::numeric_limits::min}
-  //   upper_bound  lower bound of distances needed {std::numeric_limits::max}
   // Outputs:
   //   S  #P list of smallest signed distances
   //   I  #P list of facet indices corresponding to smallest distances
@@ -43,43 +41,15 @@ namespace igl
   //
   // Known bugs: This only computes distances to triangles. So unreferenced
   // vertices and degenerate triangles are ignored.
-  template <
-    typename DerivedP,
-    typename DerivedV,
-    typename DerivedF,
-    typename DerivedS,
-    typename DerivedI,
-    typename DerivedC,
-    typename DerivedN>
   IGL_INLINE void signed_distance(
-    const Eigen::MatrixBase<DerivedP> & P,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedF> & F,
+    const Eigen::MatrixXd & P,
+    const Eigen::MatrixXd & V,
+    const Eigen::MatrixXi & F,
     const SignedDistanceType sign_type,
-    const typename DerivedV::Scalar lower_bound,
-    const typename DerivedV::Scalar upper_bound,
-    Eigen::PlainObjectBase<DerivedS> & S,
-    Eigen::PlainObjectBase<DerivedI> & I,
-    Eigen::PlainObjectBase<DerivedC> & C,
-    Eigen::PlainObjectBase<DerivedN> & N);
-  // Default bounds
-  template <
-    typename DerivedP,
-    typename DerivedV,
-    typename DerivedF,
-    typename DerivedS,
-    typename DerivedI,
-    typename DerivedC,
-    typename DerivedN>
-  IGL_INLINE void signed_distance(
-    const Eigen::MatrixBase<DerivedP> & P,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedF> & F,
-    const SignedDistanceType sign_type,
-    Eigen::PlainObjectBase<DerivedS> & S,
-    Eigen::PlainObjectBase<DerivedI> & I,
-    Eigen::PlainObjectBase<DerivedC> & C,
-    Eigen::PlainObjectBase<DerivedN> & N);
+    Eigen::VectorXd & S,
+    Eigen::VectorXi & I,
+    Eigen::MatrixXd & C,
+    Eigen::MatrixXd & N);
   // Computes signed distance to mesh
   //
   // Inputs:
@@ -92,150 +62,95 @@ namespace igl
   //   q  Query point
   // Returns signed distance to mesh
   //
-  template <
-    typename DerivedV,
-    typename DerivedF,
-    typename DerivedFN,
-    typename DerivedVN,
-    typename DerivedEN,
-    typename DerivedEMAP,
-    typename Derivedq>
-  IGL_INLINE typename DerivedV::Scalar signed_distance_pseudonormal(
-    const AABB<DerivedV,3> & tree,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedF> & F,
-    const Eigen::MatrixBase<DerivedFN> & FN,
-    const Eigen::MatrixBase<DerivedVN> & VN,
-    const Eigen::MatrixBase<DerivedEN> & EN,
-    const Eigen::MatrixBase<DerivedEMAP> & EMAP,
-    const Eigen::MatrixBase<Derivedq> & q);
-  template <
-    typename DerivedP,
-    typename DerivedV,
-    typename DerivedF,
-    typename DerivedFN,
-    typename DerivedVN,
-    typename DerivedEN,
-    typename DerivedEMAP,
-    typename DerivedS,
-    typename DerivedI,
-    typename DerivedC,
-    typename DerivedN>
-  IGL_INLINE void signed_distance_pseudonormal(
-    const Eigen::MatrixBase<DerivedP> & P,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedF> & F,
-    const AABB<DerivedV,3> & tree,
-    const Eigen::MatrixBase<DerivedFN> & FN,
-    const Eigen::MatrixBase<DerivedVN> & VN,
-    const Eigen::MatrixBase<DerivedEN> & EN,
-    const Eigen::MatrixBase<DerivedEMAP> & EMAP,
-    Eigen::PlainObjectBase<DerivedS> & S,
-    Eigen::PlainObjectBase<DerivedI> & I,
-    Eigen::PlainObjectBase<DerivedC> & C,
-    Eigen::PlainObjectBase<DerivedN> & N);
+  IGL_INLINE double signed_distance_pseudonormal(
+    const AABB<Eigen::MatrixXd,3> & tree,
+    const Eigen::MatrixXd & V,
+    const Eigen::MatrixXi & F,
+    const Eigen::MatrixXd & FN,
+    const Eigen::MatrixXd & VN,
+    const Eigen::MatrixXd & EN,
+    const Eigen::VectorXi & EMAP,
+    const Eigen::RowVector3d & q);
   // Outputs:
   //   s  sign
   //   sqrd  squared distance
   //   i  closest primitive
   //   c  closest point
   //   n  normal
-  template <
-    typename DerivedV,
-    typename DerivedF,
-    typename DerivedFN,
-    typename DerivedVN,
-    typename DerivedEN,
-    typename DerivedEMAP,
-    typename Derivedq,
-    typename Scalar,
-    typename Derivedc,
-    typename Derivedn>
   IGL_INLINE void signed_distance_pseudonormal(
-    const AABB<DerivedV,3> & tree,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedF> & F,
-    const Eigen::MatrixBase<DerivedFN> & FN,
-    const Eigen::MatrixBase<DerivedVN> & VN,
-    const Eigen::MatrixBase<DerivedEN> & EN,
-    const Eigen::MatrixBase<DerivedEMAP> & EMAP,
-    const Eigen::MatrixBase<Derivedq> & q,
-    Scalar & s,
-    Scalar & sqrd,
-    int & i,
-    Eigen::PlainObjectBase<Derivedc> & c,
-    Eigen::PlainObjectBase<Derivedn> & n);
-  template <
-    typename DerivedV,
-    typename DerivedE,
-    typename DerivedEN,
-    typename DerivedVN,
-    typename Derivedq,
-    typename Scalar,
-    typename Derivedc,
-    typename Derivedn>
+    const Eigen::MatrixXd & P,
+    const Eigen::MatrixXd & V,
+    const Eigen::MatrixXi & F,
+    const AABB<Eigen::MatrixXd,3> & tree,
+    const Eigen::MatrixXd & FN,
+    const Eigen::MatrixXd & VN,
+    const Eigen::MatrixXd & EN,
+    const Eigen::VectorXi & EMAP,
+    Eigen::VectorXd & S,
+    Eigen::VectorXi & I,
+    Eigen::MatrixXd & C,
+    Eigen::MatrixXd & N);
   IGL_INLINE void signed_distance_pseudonormal(
-    const AABB<DerivedV,2> & tree,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedE> & E,
-    const Eigen::MatrixBase<DerivedEN> & EN,
-    const Eigen::MatrixBase<DerivedVN> & VN,
-    const Eigen::MatrixBase<Derivedq> & q,
-    Scalar & s,
-    Scalar & sqrd,
+    const AABB<Eigen::MatrixXd,3> & tree,
+    const Eigen::MatrixXd & V,
+    const Eigen::MatrixXi & F,
+    const Eigen::MatrixXd & FN,
+    const Eigen::MatrixXd & VN,
+    const Eigen::MatrixXd & EN,
+    const Eigen::VectorXi & EMAP,
+    const Eigen::RowVector3d & q,
+    double & s,
+    double & sqrd,
     int & i,
-    Eigen::PlainObjectBase<Derivedc> & c,
-    Eigen::PlainObjectBase<Derivedn> & n);
+    Eigen::RowVector3d & c,
+    Eigen::RowVector3d & n);
+  IGL_INLINE void signed_distance_pseudonormal(
+    const AABB<Eigen::MatrixXd,2> & tree,
+    const Eigen::MatrixXd & V,
+    const Eigen::MatrixXi & F,
+    const Eigen::MatrixXd & FN,
+    const Eigen::MatrixXd & VN,
+    const Eigen::RowVector2d & q,
+    double & s,
+    double & sqrd,
+    int & i,
+    Eigen::RowVector2d & c,
+    Eigen::RowVector2d & n);
+
   // Inputs:
   //   tree  AABB acceleration tree (see cgal/point_mesh_squared_distance.h)
   //   hier  Winding number evaluation hierarchy
   //   q  Query point
   // Returns signed distance to mesh
-  template <
-    typename DerivedV,
-    typename DerivedF,
-    typename Derivedq>
-  IGL_INLINE typename DerivedV::Scalar signed_distance_winding_number(
-    const AABB<DerivedV,3> & tree,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedF> & F,
-    const igl::WindingNumberAABB<Derivedq,DerivedV,DerivedF> & hier,
-    const Eigen::MatrixBase<Derivedq> & q);
+  IGL_INLINE double signed_distance_winding_number(
+    const AABB<Eigen::MatrixXd,3> & tree,
+    const Eigen::MatrixXd & V,
+    const Eigen::MatrixXi & F,
+    const igl::WindingNumberAABB<Eigen::Vector3d> & hier,
+    const Eigen::RowVector3d & q);
   // Outputs:
   //   s  sign
   //   sqrd  squared distance
   //   pp  closest point and primitve
-  template <
-    typename DerivedV,
-    typename DerivedF,
-    typename Derivedq,
-    typename Scalar,
-    typename Derivedc>
   IGL_INLINE void signed_distance_winding_number(
-    const AABB<DerivedV,3> & tree,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedF> & F,
-    const igl::WindingNumberAABB<Derivedq,DerivedV,DerivedF> & hier,
-    const Eigen::MatrixBase<Derivedq> & q,
-    Scalar & s,
-    Scalar & sqrd,
+    const AABB<Eigen::MatrixXd,3> & tree,
+    const Eigen::MatrixXd & V,
+    const Eigen::MatrixXi & F,
+    const igl::WindingNumberAABB<Eigen::Matrix<double,3,1> > & hier,
+    const Eigen::Matrix<double,1,3> & q,
+    double & s,
+    double & sqrd,
     int & i,
-    Eigen::PlainObjectBase<Derivedc> & c);
-  template <
-    typename DerivedV,
-    typename DerivedF,
-    typename Derivedq,
-    typename Scalar,
-    typename Derivedc>
+    Eigen::Matrix<double,1,3> & c);
   IGL_INLINE void signed_distance_winding_number(
-    const AABB<DerivedV,2> & tree,
-    const Eigen::MatrixBase<DerivedV> & V,
-    const Eigen::MatrixBase<DerivedF> & F,
-    const Eigen::MatrixBase<Derivedq> & q,
-    Scalar & s,
-    Scalar & sqrd,
+    const AABB<Eigen::MatrixXd,2> & tree,
+    const Eigen::MatrixXd & V,
+    const Eigen::MatrixXi & F,
+    const Eigen::Matrix<double,1,2> & q,
+    double & s,
+    double & sqrd,
     int & i,
-    Eigen::PlainObjectBase<Derivedc> & c);
+    Eigen::Matrix<double,1,2> & c);
 }
 
 #ifndef IGL_STATIC_LIBRARY
@@ -243,3 +158,4 @@ namespace igl
 #endif
 
 #endif
+

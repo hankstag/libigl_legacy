@@ -152,7 +152,7 @@ static void glfw_window_size(GLFWwindow* window, int width, int height)
   int w = width*highdpi;
   int h = height*highdpi;
 
-  __viewer->post_resize(w, h);
+  __viewer->resize(w, h);
 
   // TODO: repositioning of the nanogui
 }
@@ -284,8 +284,6 @@ namespace viewer
 
   IGL_INLINE Viewer::Viewer()
   {
-    window = nullptr;
-
 #ifdef IGL_VIEWER_WITH_NANOGUI
     ngui = nullptr;
     screen = nullptr;
@@ -329,8 +327,8 @@ namespace viewer
   O,o     Toggle orthographic/perspective projection
   T,t     Toggle filled faces
   Z       Snap to canonical view
-  [,]     Toggle between rotation control types (trackball, two-axis
-          valuator with fixed up, 2D mode with no rotation))"
+  [,]     Toggle between rotation control types (e.g. trackball, two-axis
+          valuator with fixed up))"
 #ifdef IGL_VIEWER_WITH_NANOGUI
 		R"(
   ;       Toggle vertex labels
@@ -537,7 +535,6 @@ namespace viewer
       case '[':
       case ']':
       {
-<<<<<<< HEAD
         if(core->rotation_type == ViewerCore::ROTATION_TYPE_TRACKBALL)
         {
           core->set_rotation_type(
@@ -546,13 +543,6 @@ namespace viewer
         {
           core->set_rotation_type(ViewerCore::ROTATION_TYPE_TRACKBALL);
         }
-=======
-        if(core.rotation_type == ViewerCore::ROTATION_TYPE_TRACKBALL)
-          core.set_rotation_type(ViewerCore::ROTATION_TYPE_TWO_AXIS_VALUATOR_FIXED_UP);
-        else
-          core.set_rotation_type(ViewerCore::ROTATION_TYPE_TRACKBALL);
-
->>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
         return true;
       }
 #ifdef IGL_VIEWER_WITH_NANOGUI
@@ -639,11 +629,7 @@ namespace viewer
     switch (button)
     {
       case MouseButton::Left:
-        if (core.rotation_type == ViewerCore::ROTATION_TYPE_NO_ROTATION) {
-          mouse_mode = MouseMode::Translation;
-        } else {
-          mouse_mode = MouseMode::Rotation;
-        }
+        mouse_mode = MouseMode::Rotation;
         break;
 
       case MouseButton::Right:
@@ -706,8 +692,6 @@ namespace viewer
           {
             default:
               assert(false && "Unknown rotation type");
-            case ViewerCore::ROTATION_TYPE_NO_ROTATION:
-              break;
             case ViewerCore::ROTATION_TYPE_TRACKBALL:
               igl::trackball(
                 core->viewport(2),
@@ -866,25 +850,8 @@ namespace viewer
 
   IGL_INLINE void Viewer::resize(int w,int h)
   {
-<<<<<<< HEAD
     core_l.viewport = Eigen::Vector4f(0,0,w/2,h);
     core_r.viewport = Eigen::Vector4f(w/2,0,w/2,h);
-=======
-    if (window) {
-      glfwSetWindowSize(window, w/highdpi, h/highdpi);
-    } else {
-      post_resize(w, h);
-    }
-  }
-
-  IGL_INLINE void Viewer::post_resize(int w,int h)
-  {
-    core.viewport = Eigen::Vector4f(0,0,w,h);
-    for (unsigned int i = 0; i<plugins.size(); ++i)
-    {
-      plugins[i]->post_resize(w, h);
-    }
->>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
   }
 
   IGL_INLINE void Viewer::snap_to_canonical_quaternion()
@@ -947,11 +914,7 @@ namespace viewer
     }
     else
     {
-      if (core.viewport.tail<2>().any()) {
-        window = glfwCreateWindow(core.viewport(2),core.viewport(3),"libigl viewer",nullptr,nullptr);
-      } else {
-        window = glfwCreateWindow(1280,800,"libigl viewer",nullptr,nullptr);
-      }
+      window = glfwCreateWindow(1280,800,"libigl viewer",nullptr,nullptr);
     }
 
     if (!window)

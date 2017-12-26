@@ -12,7 +12,7 @@
 #include <vector>
 namespace igl
 {
-  // Construct relationships between facet "half"-(or rather "viewed")-edges E
+  // Constuct relationships between facet "half"-(or rather "viewed")-edges E
   // to unique edges of the mesh seen as a graph.
   //
   // Inputs:
@@ -30,7 +30,7 @@ namespace igl
     typename DerivedEMAP,
     typename uE2EType>
   IGL_INLINE void unique_edge_map(
-    const Eigen::MatrixBase<DerivedF> & F,
+    const Eigen::PlainObjectBase<DerivedF> & F,
     Eigen::PlainObjectBase<DerivedE> & E,
     Eigen::PlainObjectBase<DeriveduE> & uE,
     Eigen::PlainObjectBase<DerivedEMAP> & EMAP,

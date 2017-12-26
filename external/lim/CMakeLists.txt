@@ -26,7 +26,3 @@ add_library(lim STATIC
 target_include_directories(lim PRIVATE
   "../nanogui/ext/eigen"
   "../../include")
-
-if(TARGET igl::core)
-    target_link_libraries(lim PUBLIC igl::core)
-endif()

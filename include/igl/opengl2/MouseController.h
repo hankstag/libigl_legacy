@@ -169,6 +169,7 @@ namespace igl
 #include "draw_rectangular_marquee.h"
 #include "project.h"
 #include "../forward_kinematics.h"
+#include "../matlab_format.h"
 #include <iostream>
 #include <algorithm>
 #include <functional>
