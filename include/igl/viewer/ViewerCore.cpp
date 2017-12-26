@@ -505,6 +505,8 @@ IGL_INLINE igl::viewer::ViewerCore::ViewerCore()
   line_width = 0.5f;
   is_animating = false;
   animation_max_fps = 30.;
+
+  viewport.setZero();
 }
 
 IGL_INLINE void igl::viewer::ViewerCore::init()

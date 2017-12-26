@@ -401,11 +401,22 @@ namespace igl
     }
 
   private:
+<<<<<<< HEAD
     State state;
 
     const Eigen::PlainObjectBase<DerivedF>& F;
     const Eigen::PlainObjectBase<DerivedF>& FF;
     const Eigen::PlainObjectBase<DerivedF>& FFi;
+=======
+    int fi;
+    int ei;
+    bool reverse;
+
+    // All the same type? This is likely to break.
+    const Eigen::PlainObjectBase<DerivedF> & F;
+    const Eigen::PlainObjectBase<DerivedFF> & FF;
+    const Eigen::PlainObjectBase<DerivedFFi> & FFi;
+>>>>>>> dbfa2b70f599de37d8d58681a6c068a752752659
   };
 
 }
