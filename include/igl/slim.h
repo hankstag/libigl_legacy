@@ -75,6 +75,14 @@ struct SLIMData
   bool has_pre_calc = false;
   int dim;
 
+  // cached for solving linear system
+  Eigen::VectorXi I;
+  Eigen::VectorXi fi;
+  Eigen::VectorXi ci;
+  Eigen::VectorXi D1;
+  Eigen::VectorXi D2;
+  Eigen::VectorXd fixed_pos;
+
   #ifdef SLIM_CACHED
   Eigen::SparseMatrix<double> A;
   Eigen::VectorXi A_data;
