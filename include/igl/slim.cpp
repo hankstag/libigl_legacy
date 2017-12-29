@@ -20,19 +20,30 @@
 #include "grad.h"
 #include "local_basis.h"
 #include "per_face_normals.h"
+#include "slice_into.h"
 #include "volume.h"
 #include "polar_svd.h"
 #include <igl/setdiff.h>
 #include <igl/slice.h>
+#include <igl/slice_cached.h>
 #include "flip_avoiding_line_search.h"
+
 #include <iostream>
 #include <map>
 #include <set>
 #include <vector>
-#include <fstream>
 
+#include <Eigen/IterativeLinearSolvers>
 #include <Eigen/SparseCholesky>
 #include <Eigen/IterativeLinearSolvers>
+
+#include <igl/Timer.h>
+#include <igl/sparse_cached.h>
+#include <igl/AtA_cached.h>
+//#define CHOLMOD
+#ifdef CHOLMOD
+#include <Eigen/CholmodSupport>
+#endif
 
 namespace igl
 {
@@ -42,8 +53,8 @@ namespace igl
     IGL_INLINE void compute_surface_gradient_matrix(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F,
                                                     const Eigen::MatrixXd &F1, const Eigen::MatrixXd &F2,
                                                     Eigen::SparseMatrix<double> &D1, Eigen::SparseMatrix<double> &D2);
-    IGL_INLINE void buildA(igl::SLIMData& s, Eigen::SparseMatrix<double> &A);
-    IGL_INLINE void buildRhs(igl::SLIMData& s, const Eigen::SparseMatrix<double> &At);
+    IGL_INLINE void buildA(igl::SLIMData& s, std::vector<Eigen::Triplet<double> > & IJV);
+    IGL_INLINE void buildRhs(igl::SLIMData& s, const Eigen::SparseMatrix<double> &A);
     IGL_INLINE void add_soft_constraints(igl::SLIMData& s, Eigen::SparseMatrix<double> &L);
     IGL_INLINE double compute_energy(igl::SLIMData& s, Eigen::MatrixXd &V_new);
     IGL_INLINE double compute_soft_const_energy(igl::SLIMData& s,
@@ -100,50 +111,79 @@ namespace igl
     }
 
       IGL_INLINE void solve(
+              Eigen::VectorXi& data1,
+              Eigen::VectorXi& data2,
+              Eigen::VectorXi& data3,
+              Eigen::SparseMatrix<double>& Af,
+              Eigen::SparseMatrix<double>& Aff,
+              Eigen::SparseMatrix<double>& Afc,
+              const Eigen::VectorXi& fi,
+              const Eigen::VectorXi& ci,
+              Eigen::VectorXi& D1,
+              Eigen::VectorXi& D2,
               const Eigen::SparseMatrix<double>& A,
               const Eigen::VectorXd& xc,
               const Eigen::VectorXd& rhs,
-              const Eigen::VectorXi& ci,
               Eigen::VectorXd& sol
       ){
           // solving linear system with linear constraints
           // using row/col removal
-
-          int n = xc.rows();
-          int R = A.rows();
-          int C = A.cols();
-
-          Eigen::VectorXd bf,bc;
-          Eigen::VectorXi T=Eigen::VectorXi::LinSpaced(C,0,C-1);
-          Eigen::VectorXi I,fi;
-          if(n==0)
-              fi = T;
-          else
-            igl::setdiff(T,ci,fi,I);
-
-          Eigen::VectorXi D;
-          D = Eigen::VectorXi::LinSpaced(A.cols(),0,A.cols()-1);
-
-          Eigen::SparseMatrix<double> Af,Ac;
-          igl::slice(A,fi,D,Af);
-          igl::slice(A,ci,D,Ac);
+          igl::Timer t;
+          t.start();
+          auto start = t.getElapsedTime();
           Eigen::VectorXd new_rhs;
           igl::slice(rhs,fi,1,new_rhs);
-          Eigen::SparseMatrix<double> Aff,Acc,Acf,Afc;
-          D = Eigen::VectorXi::LinSpaced(Af.rows(),0,Af.rows()-1);
-          igl::slice(Af,D,fi,Aff);
-          igl::slice(Af,D,ci,Afc);
+
+          if(data1.size()==0){
+            igl::slice_cached_precompute(A,fi,D1,Af,data1);
+          }else{
+            //Af.resize(fi.rows(),D1.rows());
+            igl::slice_cached(A,Af,data1);
+          }
+          if(data2.size()==0){
+            igl::slice_cached_precompute(Af,D2,fi,Aff,data2);
+          }else{
+            igl::slice_cached(Af,Aff,data2);
+          }
+          if(data3.size()==0){
+            igl::slice_cached_precompute(Af,D2,ci,Afc,data3);
+          }else{
+            igl::slice_cached(Af,Afc,data3);
+          }
+          //igl::slice(A,fi,D1,Af);
+          //igl::slice(A,ci,D1,Ac);
+          
+          // igl::slice(Af,D2,fi,Aff);
+          // igl::slice(Af,D2,ci,Afc);
+
+          auto slice_end = t.getElapsedTime();
+          //#define TIME_PROFILE
+          #ifdef TIME_PROFILE
+          std::cout<<"slicing time: "<<slice_end - start<<std::endl;
+          #endif
           Afc.makeCompressed();
           Aff.makeCompressed();
           new_rhs = new_rhs-Afc*xc;
+          auto before_solve = t.getElapsedTime();
+          #ifndef CHOLMOD
           Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
           Eigen::VectorXd xf = solver.compute(Aff).solve(new_rhs);
-          sol.resize(C);
+          #else
+          Eigen::CholmodSimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+          Eigen::VectorXd xf = solver.compute(Aff).solve(new_rhs);
+          #endif
+          auto after_solve = t.getElapsedTime();
+          #ifdef TIME_PROFILE          
+          std::cout<<"solve time: "<<after_solve - before_solve<<std::endl;
+          #endif
+          sol.resize(A.cols());
           for(int i=0;i<ci.rows();i++) // constant
               sol(ci(i))=xc(i);
           for(int i=0;i<fi.rows();i++){ // free
               sol(fi(i))=xf(i);
           }
+          // auto after_solve = t.getElapsedTime();
+          // std::cout<<"solve "<<after_solve - after_slice<<std::endl;
       }
 
     IGL_INLINE void solve_lagrange(
@@ -170,8 +210,13 @@ namespace igl
       rhs << c,
              b;
       new_A.makeCompressed();
+      #ifndef CHOLMOD
       Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
       sol = solver.compute(new_A).solve(rhs);
+      #else
+      Eigen::CholmodSimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+      sol = solver.compute(new_A).solve(rhs);
+      #endif
 
       //Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> solver;
       // test solver
@@ -183,6 +228,7 @@ namespace igl
       // using row/col removal instead?
 
     }
+
 
     IGL_INLINE void compute_jacobians(igl::SLIMData& s, const Eigen::MatrixXd &uv)
     {
@@ -493,8 +539,14 @@ namespace igl
       using namespace Eigen;
 
       Eigen::SparseMatrix<double> L;
+      igl::Timer t;
+      
+      //t.start();
+      //auto start_build = t.getElapsedTime();
       build_linear_system(s,L);
-
+      //auto end_build = t.getElapsedTime();
+      //std::cout<<"building linear system time: "<<end_build-start_build<<std::endl;
+      
       // solve
       Eigen::VectorXd Uc;
       if (s.dim == 2)
@@ -503,17 +555,7 @@ namespace igl
           SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
           Uc = solver.compute(L).solve(s.rhs);
         }else{
-          VectorXd bc=VectorXd::Zero(soft_bc_p.rows()*s.dim);
-          VectorXi b=VectorXi::Zero(soft_bc_p.rows()*s.dim);
-          if(soft_b_p.rows()!=0){
-            b<<soft_b_p,soft_b_p.array()+V.rows();
-            bc<<soft_bc_p.col(0),soft_bc_p.col(1);
-          }
-            SparseMatrix<double> Aeq(b.rows(),s.dim*V.rows());
-            for(int r=0;r<b.rows();r++){
-                Aeq.insert(r,b(r))=1;
-            }
-            solve(L,bc,s.rhs,b,Uc);
+          solve(s.data1,s.data2,s.data3,s.Af,s.Aff,s.Afc,s.fi,s.ci,s.D1,s.D2,L,s.fixed_pos,s.rhs,Uc);
         }
       }
       else
@@ -609,23 +651,63 @@ namespace igl
     IGL_INLINE void build_linear_system(igl::SLIMData& s, Eigen::SparseMatrix<double> &L)
     {
       // formula (35) in paper
+      std::vector<Eigen::Triplet<double> > IJV;
+      
+      #ifdef SLIM_CACHED
+      buildA(s,IJV);
+      if (s.A.rows() == 0)
+      {
+        s.A = Eigen::SparseMatrix<double>(s.dim * s.dim * s.f_n, s.dim * s.v_n);
+        igl::sparse_cached_precompute(IJV,s.A,s.A_data);
+      }
+      else
+        igl::sparse_cached(IJV,s.A,s.A_data);
+      #else
       Eigen::SparseMatrix<double> A(s.dim * s.dim * s.f_n, s.dim * s.v_n);
-      buildA(s,A);
+      buildA(s,IJV);
+      A.setFromTriplets(IJV.begin(),IJV.end());
+      A.makeCompressed();
+      #endif
 
+      #ifdef SLIM_CACHED
+      #else
       Eigen::SparseMatrix<double> At = A.transpose();
       At.makeCompressed();
+      #endif
 
-      Eigen::SparseMatrix<double> id_m(At.rows(), At.rows());
+      #ifdef SLIM_CACHED
+      Eigen::SparseMatrix<double> id_m(s.A.cols(), s.A.cols());
+      #else
+      Eigen::SparseMatrix<double> id_m(A.cols(), A.cols());
+      #endif
+
       id_m.setIdentity();
 
       // add proximal penalty
-      L = At * s.WGL_M.asDiagonal() * A + s.proximal_p * id_m; //add also a proximal term
+      #ifdef SLIM_CACHED
+      s.AtA_data.W = s.WGL_M;
+      if (s.AtA.rows() == 0)
+        igl::AtA_cached_precompute(s.A,s.AtA,s.AtA_data);
+      else
+        igl::AtA_cached(s.A,s.AtA,s.AtA_data);
+
+      L = s.AtA + s.proximal_p * id_m; //add also a proximal 
       L.makeCompressed();
 
-      buildRhs(s, At);
-//      Eigen::SparseMatrix<double> OldL = L;
-//      add_soft_constraints(s,L);
-//      L.makeCompressed();
+      #else
+      L = At * s.WGL_M.asDiagonal() * A + s.proximal_p * id_m; //add also a proximal term
+      L.makeCompressed();
+      #endif
+
+      #ifdef SLIM_CACHED
+      buildRhs(s, s.A);
+      #else
+      buildRhs(s, A);
+      #endif
+
+      // Eigen::SparseMatrix<double> OldL = L;
+      // add_soft_constraints(s,L);
+      // L.makeCompressed();
     }
 
     IGL_INLINE void add_soft_constraints(igl::SLIMData& s, Eigen::SparseMatrix<double> &L)
@@ -791,10 +873,9 @@ namespace igl
       return energy;
     }
 
-    IGL_INLINE void buildA(igl::SLIMData& s, Eigen::SparseMatrix<double> &A)
+    IGL_INLINE void buildA(igl::SLIMData& s, std::vector<Eigen::Triplet<double> > & IJV)
     {
       // formula (35) in paper
-      std::vector<Eigen::Triplet<double> > IJV;
       if (s.dim == 2)
       {
         IJV.reserve(4 * (s.Dx.outerSize() + s.Dy.outerSize()));
@@ -914,10 +995,9 @@ namespace igl
           }
         }
       }
-      A.setFromTriplets(IJV.begin(), IJV.end());
     }
 
-    IGL_INLINE void buildRhs(igl::SLIMData& s, const Eigen::SparseMatrix<double> &At)
+    IGL_INLINE void buildRhs(igl::SLIMData& s, const Eigen::SparseMatrix<double> &A)
     {
       Eigen::VectorXd f_rhs(s.dim * s.dim * s.f_n);
       f_rhs.setZero();
@@ -964,7 +1044,7 @@ namespace igl
         for (int j = 0; j < s.v_n; j++)
           uv_flat(s.v_n * i + j) = s.V_o(j, i);
 
-      s.rhs = (At * s.WGL_M.asDiagonal() * f_rhs + s.proximal_p * uv_flat);
+      s.rhs = (f_rhs.transpose() * s.WGL_M.asDiagonal() * A).transpose() + s.proximal_p * uv_flat;
     }
 
   }
@@ -1013,6 +1093,32 @@ IGL_INLINE void igl::slim_precompute(
 
   igl::slim::pre_calc(data);
   data.energy = igl::slim::compute_energy(data,data.V_o,E) / data.mesh_area;
+
+  int n = b.rows();
+  // the size of linear system
+  int R = data.v_num*data.dim;
+  int C = data.v_num*data.dim;
+  Eigen::VectorXi I;
+  Eigen::VectorXi T=Eigen::VectorXi::LinSpaced(C,0,C-1);
+  data.fixed_pos = Eigen::VectorXd::Zero(data.bc.rows()*data.dim);
+  data.ci = Eigen::VectorXi::Zero(data.b.rows()*data.dim);
+  if(data.bc.rows()!=0){
+    data.fixed_pos<<data.bc.col(0),data.bc.col(1);
+    if(data.dim == 3)
+      data.ci<<data.b,data.b.array()+data.v_num,data.b.array()+2*data.v_num;
+    else
+      data.ci<<data.b,data.b.array()+data.v_num;
+  }
+  if(n==0)
+    data.fi = T;
+  else
+    igl::setdiff(T,data.ci,data.fi,I);
+  data.D1 = Eigen::VectorXi::LinSpaced(C,0,C-1);
+  data.D2 = Eigen::VectorXi::LinSpaced(data.fi.rows(),0,data.fi.rows()-1);
+  // data.fixed_pos = Eigen::VectorXd::Zero(data.bc.rows()*data.dim);
+  // if(data.bc.rows()!=0){
+  //   data.fixed_pos<<data.bc.col(0),data.bc.col(1);
+  // }
 }
 
 IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::VectorXd& E)

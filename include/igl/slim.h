@@ -12,6 +12,14 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
+// This option makes the iterations faster (all except the first) by caching the 
+// sparsity pattern of the matrix involved in the assembly. It should be on if you plan to do many iterations, off if you have to change the matrix structure at every iteration.
+#define SLIM_CACHED 
+
+#ifdef SLIM_CACHED
+#include <igl/AtA_cached.h>
+#endif
+
 namespace igl
 {
 
@@ -66,6 +74,30 @@ struct SLIMData
   bool first_solve;
   bool has_pre_calc = false;
   int dim;
+
+  // cached for solving linear system
+  Eigen::VectorXi I;
+  Eigen::VectorXi fi;
+  Eigen::VectorXi ci;
+  Eigen::VectorXi D1;
+  Eigen::VectorXi D2;
+  Eigen::VectorXd fixed_pos;
+
+  Eigen::VectorXi data1;
+  Eigen::VectorXi data2;
+  Eigen::VectorXi data3;
+  Eigen::VectorXi data4;
+
+  Eigen::SparseMatrix<double> Af;
+  Eigen::SparseMatrix<double> Aff;
+  Eigen::SparseMatrix<double> Afc;
+
+  #ifdef SLIM_CACHED
+  Eigen::SparseMatrix<double> A;
+  Eigen::VectorXi A_data;
+  Eigen::SparseMatrix<double> AtA;
+  igl::AtA_cached_data AtA_data;
+  #endif
 };
 
 // Compute necessary information to start using SLIM
