@@ -243,5 +243,4 @@ namespace igl
 
 #ifdef IGL_STATIC_LIBRARY
 // Explicit template specialization
-template void igl::cut_mesh<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, std::__1::vector<std::__1::vector<Eigen::Matrix<int, -1, -1, 0, -1, -1>::Scalar, std::__1::allocator<Eigen::Matrix<int, -1, -1, 0, -1, -1>::Scalar> >, std::__1::allocator<std::__1::vector<Eigen::Matrix<int, -1, -1, 0, -1, -1>::Scalar, std::__1::allocator<Eigen::Matrix<int, -1, -1, 0, -1, -1>::Scalar> > > > const&, std::__1::vector<std::__1::vector<Eigen::Matrix<int, -1, -1, 0, -1, -1>::Scalar, std::__1::allocator<Eigen::Matrix<int, -1, -1, 0, -1, -1>::Scalar> >, std::__1::allocator<std::__1::vector<Eigen::Matrix<int, -1, -1, 0, -1, -1>::Scalar, std::__1::allocator<Eigen::Matrix<int, -1, -1, 0, -1, -1>::Scalar> > > >&, std::__1::vector<std::__1::vector<int, std::__1::allocator<int> >, std::__1::allocator<std::__1::vector<int, std::__1::allocator<int> > > >&);
 #endif
