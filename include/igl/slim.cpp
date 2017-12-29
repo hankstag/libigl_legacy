@@ -25,6 +25,7 @@
 #include "polar_svd.h"
 #include <igl/setdiff.h>
 #include <igl/slice.h>
+#include <igl/slice_cached.h>
 #include "flip_avoiding_line_search.h"
 
 #include <iostream>
@@ -39,7 +40,7 @@
 #include <igl/Timer.h>
 #include <igl/sparse_cached.h>
 #include <igl/AtA_cached.h>
-#define CHOLMOD
+//#define CHOLMOD
 #ifdef CHOLMOD
 #include <Eigen/CholmodSupport>
 #endif
@@ -110,6 +111,12 @@ namespace igl
     }
 
       IGL_INLINE void solve(
+              Eigen::VectorXi& data1,
+              Eigen::VectorXi& data2,
+              Eigen::VectorXi& data3,
+              Eigen::SparseMatrix<double>& Af,
+              Eigen::SparseMatrix<double>& Aff,
+              Eigen::SparseMatrix<double>& Afc,
               const Eigen::VectorXi& fi,
               const Eigen::VectorXi& ci,
               Eigen::VectorXi& D1,
@@ -124,16 +131,38 @@ namespace igl
           igl::Timer t;
           t.start();
           auto start = t.getElapsedTime();
-          Eigen::SparseMatrix<double> Af,Ac;
-          igl::slice(A,fi,D1,Af);
-          igl::slice(A,ci,D1,Ac);
           Eigen::VectorXd new_rhs;
           igl::slice(rhs,fi,1,new_rhs);
-          Eigen::SparseMatrix<double> Aff,Acc,Acf,Afc;
-          igl::slice(Af,D2,fi,Aff);
-          igl::slice(Af,D2,ci,Afc);
+
+          if(data1.size()==0){
+            igl::slice_cached_precompute(A,fi,D1,Af,data1);
+          }else{
+            //Af.resize(fi.rows(),D1.rows());
+            std::cout<<A.rows()<<","<<A.cols()<<std::endl;
+            std::cout<<Af.rows()<<","<<Af.cols()<<std::endl;
+            std::cout<<data1.rows()<<std::endl;
+            std::cout<<data1(0)<<std::endl;
+            std::cout<<*(Af.valuePtr())<<std::endl;
+            igl::slice_cached(A,Af,data1);
+          }
+          if(data2.size()==0){
+            igl::slice_cached_precompute(Af,D2,fi,Aff,data2);
+          }else{
+            igl::slice_cached(Af,Aff,data2);
+          }
+          if(data3.size()==0){
+            igl::slice_cached_precompute(Af,D2,ci,Afc,data3);
+          }else{
+            igl::slice_cached(Af,Afc,data3);
+          }
+          //igl::slice(A,fi,D1,Af);
+          //igl::slice(A,ci,D1,Ac);
+          
+          // igl::slice(Af,D2,fi,Aff);
+          // igl::slice(Af,D2,ci,Afc);
+
           auto slice_end = t.getElapsedTime();
-          //#define TIME_PROFILE
+          #define TIME_PROFILE
           #ifdef TIME_PROFILE
           std::cout<<"slicing time: "<<slice_end - start<<std::endl;
           #endif
@@ -531,7 +560,7 @@ namespace igl
           SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
           Uc = solver.compute(L).solve(s.rhs);
         }else{
-          solve(s.fi,s.ci,s.D1,s.D2,L,s.fixed_pos,s.rhs,Uc);
+          solve(s.data1,s.data2,s.data3,s.Af,s.Aff,s.Afc,s.fi,s.ci,s.D1,s.D2,L,s.fixed_pos,s.rhs,Uc);
         }
       }
       else

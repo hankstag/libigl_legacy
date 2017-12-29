@@ -83,6 +83,15 @@ struct SLIMData
   Eigen::VectorXi D2;
   Eigen::VectorXd fixed_pos;
 
+  Eigen::VectorXi data1;
+  Eigen::VectorXi data2;
+  Eigen::VectorXi data3;
+  Eigen::VectorXi data4;
+
+  Eigen::SparseMatrix<double> Af;
+  Eigen::SparseMatrix<double> Aff;
+  Eigen::SparseMatrix<double> Afc;
+
   #ifdef SLIM_CACHED
   Eigen::SparseMatrix<double> A;
   Eigen::VectorXi A_data;
