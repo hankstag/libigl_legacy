@@ -56,9 +56,9 @@ namespace igl
     const Eigen::SparseMatrix<TX>& X,
     Eigen::SparseMatrix<TY>& Y,
     const Eigen::VectorXi& data);
-
+}
 #ifndef IGL_STATIC_LIBRARY
 #  include "slice_cached.cpp"
 #endif
-}
+
 #endif
