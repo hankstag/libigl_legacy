@@ -79,10 +79,8 @@ namespace igl
     IGL_INLINE void build_linear_system(igl::SLIMData& s, Eigen::SparseMatrix<double> &L);
     IGL_INLINE void pre_calc(igl::SLIMData& s);
     IGL_INLINE void solve_lagrange(
-        const Eigen::MatrixXd& uv,
         const Eigen::SparseMatrix<double>& H,
         const Eigen::SparseMatrix<double>& Aeq,
-        const Eigen::VectorXd& tail,
         const Eigen::VectorXd& c,
         const Eigen::VectorXi& bi,
         const Eigen::VectorXd& b,
@@ -189,64 +187,41 @@ namespace igl
       }
 
     IGL_INLINE void solve_lagrange(
-        const Eigen::MatrixXd& uv,
         const Eigen::SparseMatrix<double>& H,
         const Eigen::SparseMatrix<double>& Aeq,
-        const Eigen::VectorXd& tail,
         const Eigen::VectorXd& c,
         const Eigen::VectorXi& bi,
         const Eigen::VectorXd& b,
         Eigen::VectorXd& sol
     ){
-      // if(bi.rows()==0){
-      //   Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
-      //   sol = solver.compute(H).solve(c);
-      //   return;
-      // }
-      int vn_now = H.rows();
-      Eigen::SparseMatrix<double> Aeq_extend;
-      Eigen::SparseMatrix<double> Aeq_x = Aeq.block(0,0,Aeq.rows(),Aeq.cols()/2);
-      Eigen::SparseMatrix<double> Aeq_y = Aeq.block(0,Aeq.cols()/2,Aeq.rows(),Aeq.cols()/2);
-      // Eigen::SparseMatrix<double> fixed(3,vn_now);
-      // fixed.insert(0,0)=1;
-      // fixed.insert(1,vn_now/2)=1;
-      // fixed.insert(2,0)=1;
-      // fixed.insert(2,)=-1;
-
-      Eigen::SparseMatrix<double> Z0(Aeq.rows(),(vn_now-Aeq.cols())/2);
-      Aeq_extend = igl::cat(2,igl::cat(2,   Aeq_x,Z0 ),igl::cat(2,   Aeq_y,Z0 ));
-
-      int neq = Aeq_extend.rows();   // number of constraints
+      if(bi.rows()==0){
+        Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+        sol = solver.compute(H).solve(c);
+        return;
+      }
+      int neq = Aeq.rows();   // number of constraints
       Eigen::SparseMatrix<double> new_A;
       Eigen::VectorXd rhs(c.rows()+b.rows());
-      Eigen::SparseMatrix<double> Aeq_extendT = Aeq_extend.transpose();
+      Eigen::SparseMatrix<double> AeqT = Aeq.transpose();
       Eigen::SparseMatrix<double> Z(neq,neq);
-      std::cout<<" ===== "<<std::endl;
-      std::cout<<Aeq_extend.rows()<<" Aeq "<<Aeq_extend.cols()<<std::endl;
-      std::cout<<H.rows()<<" H "<<H.cols()<<std::endl;
-      std::cout<<Z.rows()<<" Z "<<Z.cols()<<std::endl;
-      std::cout<<" ===== "<<std::endl;
       // This is a bit slower. But why isn't cat fast?
-      new_A = igl::cat(1, igl::cat(2,   H, Aeq_extendT ),
-                     igl::cat(2, Aeq_extend,    Z ));
-
+      new_A = igl::cat(1, igl::cat(2,   H, AeqT ),
+                     igl::cat(2, Aeq,    Z ));
       rhs << c,
              b;
-      std::cout<<" ===== "<<std::endl;
-      std::cout<<new_A.rows()<<" new A "<<new_A.cols()<<std::endl;
-      std::cout<<rhs.rows()<<" rhs "<<rhs.cols()<<std::endl;
-      std::cout<<" ===== "<<std::endl;
-
       new_A.makeCompressed();
-
+      #ifndef CHOLMOD
       Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
       sol = solver.compute(new_A).solve(rhs);
-      //std::cout<<"done "<<std::endl;
-      // Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> s;
-      // sol = s.compute(new_A).solve(rhs);      
-      //test solver
-      Eigen::VectorXd p = new_A*sol-rhs;
-      std::cout<<p.norm()<<std::endl;
+      #else
+      Eigen::CholmodSimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+      sol = solver.compute(new_A).solve(rhs);
+      #endif
+
+      //Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> solver;
+      // test solver
+//      Eigen::VectorXd p = new_A*sol-rhs;
+//      //std::cout<<p.norm()/rhs.norm()<<std::endl;
 //      for(int i=0;i<bi.rows();i++){
 //        sol(bi(i)) = b(i);
 //      }
@@ -580,13 +555,7 @@ namespace igl
           SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
           Uc = solver.compute(L).solve(s.rhs);
         }else{
-          // solve(s.data1,s.data2,s.data3,s.Af,s.Aff,s.Afc,s.fi,s.ci,s.D1,s.D2,L,s.fixed_pos,s.rhs,Uc);
-          int m = s.Aeq.rows();
-          VectorXd bc=VectorXd::Zero(m);
-          VectorXi b=VectorXi::Zero(m);
-          VectorXd xx;
-          solve_lagrange(uv,L,s.Aeq,s.tail,s.rhs,b,bc,xx);
-          Uc=xx.block(0,0,2*V.rows(),1);
+          solve(s.data1,s.data2,s.data3,s.Af,s.Aff,s.Afc,s.fi,s.ci,s.D1,s.D2,L,s.fixed_pos,s.rhs,Uc);
         }
       }
       else
@@ -610,7 +579,7 @@ namespace igl
           }
           Aeq.makeCompressed();
           VectorXd xx;
-          solve_lagrange(uv,L,Aeq,s.tail,s.rhs,b,bc,xx);
+          solve_lagrange(L,Aeq,s.rhs,b,bc,xx);
           Uc=xx.block(0,0,3*V.rows(),1);
         }
       }
@@ -1094,9 +1063,7 @@ IGL_INLINE void igl::slim_precompute(
   double soft_p,
   bool is_hard_cstr,
   Eigen::VectorXd& E,
-  double exp_factor,
-  Eigen::SparseMatrix<double>& Aeq,
-  Eigen::VectorXd& tail
+  double exp_factor
 )
 {
 
@@ -1106,17 +1073,16 @@ IGL_INLINE void igl::slim_precompute(
 
   data.v_num = V.rows();
   data.f_num = F.rows();
-  
+
   data.slim_energy = slim_energy;
 
   data.b = b;
   data.bc = bc;
-  data.Aeq = Aeq;
   data.soft_const_p = soft_p;
   data.is_hard_cstr = is_hard_cstr;
-  data.tail = tail;
+
   data.proximal_p = 0.0001;
-  
+
   igl::doublearea(V, F, data.M);
   data.M /= 2.;
   data.mesh_area = data.M.sum();
@@ -1182,7 +1148,7 @@ IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::
           data.energy = igl::flip_avoiding_line_search(data.F, data.V_o, dest_res, compute_energy,
                                                        data.energy * data.mesh_area) / data.mesh_area;
       }
-      if(data.exp_iter>30){
+      if(data.exp_iter>50){
         data.exp_factor *= 2;
         data.exp_iter = 0;
       }
