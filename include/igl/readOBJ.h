@@ -83,6 +83,18 @@ IGL_INLINE bool readOBJ(
   std::vector<std::vector<Index > > & FN,
   std::vector<std::vector<Index > > & RI);
 
+      template <typename Scalar, typename Index>
+IGL_INLINE bool readOBJ(
+  FILE * obj_file,
+  std::vector<std::vector<Scalar > > & V,
+  std::vector<std::vector<Scalar > > & TC,
+  std::vector<std::vector<Scalar > > & N,
+  std::vector<std::vector<Index > > & F,
+  std::vector<std::vector<Index > > & FTC,
+  std::vector<std::vector<Index > > & FN,
+  std::vector<std::vector<Index > > & RI,
+  std::vector<std::vector<Index > > & EE);
+
   template <
     typename DerivedV, 
     typename DerivedTC, 
@@ -110,6 +122,18 @@ IGL_INLINE bool readOBJ(
   std::vector<std::vector<Index > > & FN,
   std::vector<std::vector<Index > > & RI);
 
+ template <typename Scalar, typename Index>
+IGL_INLINE bool readOBJ(
+  const std::string obj_file_name,
+  std::vector<std::vector<Scalar > > & V,
+  std::vector<std::vector<Scalar > > & TC,
+  std::vector<std::vector<Scalar > > & N,
+  std::vector<std::vector<Index > > & F,
+  std::vector<std::vector<Index > > & FTC,
+  std::vector<std::vector<Index > > & FN,
+  std::vector<std::vector<Index > > & RI,
+  std::vector<std::vector<Index > > & EE); 
+
 template <
   typename DerivedV, 
   typename DerivedTC, 
@@ -127,6 +151,27 @@ IGL_INLINE bool readOBJ(
   Eigen::PlainObjectBase<DerivedFTC>& FTC,
   Eigen::PlainObjectBase<DerivedFN>& FN,
   Eigen::PlainObjectBase<DerivedRI>& RI);
+
+template <
+  typename DerivedV, 
+  typename DerivedTC, 
+  typename DerivedCN, 
+  typename DerivedF,
+  typename DerivedFTC,
+  typename DerivedFN,
+  typename DerivedRI,
+  typename DerivedEE>
+IGL_INLINE bool readOBJ(
+  const std::string str,
+  Eigen::PlainObjectBase<DerivedV>& V,
+  Eigen::PlainObjectBase<DerivedTC>& TC,
+  Eigen::PlainObjectBase<DerivedCN>& CN,
+  Eigen::PlainObjectBase<DerivedF>& F,
+  Eigen::PlainObjectBase<DerivedFTC>& FTC,
+  Eigen::PlainObjectBase<DerivedFN>& FN,
+  Eigen::PlainObjectBase<DerivedRI>& RI,
+  Eigen::PlainObjectBase<DerivedEE>& EE);
+
 
   template <typename DerivedV, typename DerivedF>
   IGL_INLINE bool readOBJ(

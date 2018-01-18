@@ -91,6 +91,10 @@ struct SLIMData
   Eigen::SparseMatrix<double> Af;
   Eigen::SparseMatrix<double> Aff;
   Eigen::SparseMatrix<double> Afc;
+  Eigen::SparseMatrix<double> Aeq;
+
+  Eigen::SparseMatrix<double> fixed;
+  Eigen::VectorXd tail;
 
   #ifdef SLIM_CACHED
   Eigen::SparseMatrix<double> A;
@@ -119,7 +123,9 @@ IGL_INLINE void slim_precompute(
   double soft_p,
   bool is_hard_cstr,
   Eigen::VectorXd& E,
-  double exp_factor
+  double exp_factor,
+  Eigen::SparseMatrix<double>& Aeq,
+  Eigen::VectorXd& tail  // corresponding rhs for fixed
 );
 
 // Run iter_num iterations of SLIM
