@@ -546,7 +546,7 @@ namespace igl
       build_linear_system(s,L);
       //auto end_build = t.getElapsedTime();
       //std::cout<<"building linear system time: "<<end_build-start_build<<std::endl;
-      
+
       // solve
       Eigen::VectorXd Uc;
       if (s.dim == 2)
