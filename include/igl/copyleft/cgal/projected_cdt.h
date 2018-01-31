@@ -9,6 +9,7 @@
 #define IGL_COPYLEFT_CGAL_PROJECTED_CDT_H
 #include "../../igl_inline.h"
 #include <Eigen/Core>
+#include <CGAL/object.h>
 #include <CGAL/Plane_3.h>
 #include <CGAL/Point_3.h>
 #include <vector>

@@ -138,11 +138,6 @@ namespace igl
             igl::slice_cached_precompute(A,fi,D1,Af,data1);
           }else{
             //Af.resize(fi.rows(),D1.rows());
-            std::cout<<A.rows()<<","<<A.cols()<<std::endl;
-            std::cout<<Af.rows()<<","<<Af.cols()<<std::endl;
-            std::cout<<data1.rows()<<std::endl;
-            std::cout<<data1(0)<<std::endl;
-            std::cout<<*(Af.valuePtr())<<std::endl;
             igl::slice_cached(A,Af,data1);
           }
           if(data2.size()==0){
@@ -162,7 +157,7 @@ namespace igl
           // igl::slice(Af,D2,ci,Afc);
 
           auto slice_end = t.getElapsedTime();
-          #define TIME_PROFILE
+          //#define TIME_PROFILE
           #ifdef TIME_PROFILE
           std::cout<<"slicing time: "<<slice_end - start<<std::endl;
           #endif
@@ -546,12 +541,12 @@ namespace igl
       Eigen::SparseMatrix<double> L;
       igl::Timer t;
       
-      t.start();
-      auto start_build = t.getElapsedTime();
+      //t.start();
+      //auto start_build = t.getElapsedTime();
       build_linear_system(s,L);
-      auto end_build = t.getElapsedTime();
-      std::cout<<"building linear system time: "<<end_build-start_build<<std::endl;
-      
+      //auto end_build = t.getElapsedTime();
+      //std::cout<<"building linear system time: "<<end_build-start_build<<std::endl;
+
       // solve
       Eigen::VectorXd Uc;
       if (s.dim == 2)
@@ -1147,13 +1142,13 @@ IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num, Eigen::
     //std::cout.precision(17);
     std::cout<<"slim energy "<<data.energy<<std::endl;
     if(data.slim_energy == igl::SLIMData::EXP_CONFORMAL || data.slim_energy == igl::SLIMData::EXP_SYMMETRIC_DIRICHLET) {
-      while (std::isnan(data.energy) || std::isinf(data.energy) || (data.energy > 1e40)) {
+      while (std::isnan(data.energy) || std::isinf(data.energy) || (data.energy > 1e15)) {
           std::cout<<"using factor "<<data.exp_factor<<std::endl;
-          data.exp_factor /= 5;
+          data.exp_factor /= 3;
           data.energy = igl::flip_avoiding_line_search(data.F, data.V_o, dest_res, compute_energy,
                                                        data.energy * data.mesh_area) / data.mesh_area;
       }
-      if(data.exp_iter>20){
+      if(data.exp_iter>50){
         data.exp_factor *= 2;
         data.exp_iter = 0;
       }
