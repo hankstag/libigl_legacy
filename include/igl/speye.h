@@ -8,7 +8,7 @@
 #ifndef IGL_SPEYE_H
 #define IGL_SPEYE_H
 #include "igl_inline.h"
-
+#include <unsupported/Eigen/MPRealSupport>
 #define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
 #include <Eigen/Sparse>
 

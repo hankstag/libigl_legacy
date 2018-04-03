@@ -6,6 +6,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can 
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "find.h"
+#include <unsupported/Eigen/MPRealSupport>
 
 #include "verbose.h"
 #include <iostream>
@@ -129,6 +130,8 @@ template void igl::find<double, Eigen::Matrix<double, -1, 1, 0, -1, 1>, Eigen::M
 template void igl::find<double, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::SparseMatrix<double, 0, int> const&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::DenseBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&);
 template void igl::find<Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
 template void igl::find<double, Eigen::Matrix<long, -1, 1, 0, -1, 1>, Eigen::Matrix<long, -1, 1, 0, -1, 1>, Eigen::Matrix<double, -1, 1, 0, -1, 1> >(Eigen::SparseMatrix<double, 0, int> const&, Eigen::DenseBase<Eigen::Matrix<long, -1, 1, 0, -1, 1> >&, Eigen::DenseBase<Eigen::Matrix<long, -1, 1, 0, -1, 1> >&, Eigen::DenseBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> >&);
+template void igl::find<mpfr::mpreal, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<mpfr::mpreal, -1, 1, 0, -1, 1> >(Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::DenseBase<Eigen::Matrix<mpfr::mpreal, -1, 1, 0, -1, 1> >&);
+template void igl::find<mpfr::mpreal, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<mpfr::mpreal, -1, -1, 0, -1, -1> >(Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::DenseBase<Eigen::Matrix<mpfr::mpreal, -1, -1, 0, -1, -1> >&);
 #if EIGEN_VERSION_AT_LEAST(3,3,0)
 #else
 template void igl::find<Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<long, (Eigen::internal::ComparisonName)0>, Eigen::PartialReduxExpr<Eigen::Array<bool, -1, 3, 0, -1, 3>, Eigen::internal::member_count<long>, 1> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<long>, Eigen::Array<long, -1, 1, 0, -1, 1> > const>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::DenseBase<Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<long, (Eigen::internal::ComparisonName)0>, Eigen::PartialReduxExpr<Eigen::Array<bool, -1, 3, 0, -1, 3>, Eigen::internal::member_count<long>, 1> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<long>, Eigen::Array<long, -1, 1, 0, -1, 1> > const> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);

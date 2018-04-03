@@ -12,6 +12,7 @@
 #include <cassert>
 #include <iostream>
 #include <limits>
+#include <unsupported/Eigen/MPRealSupport>
 
 template <typename DerivedV, typename DerivedF, typename DeriveddblA>
 IGL_INLINE void igl::doublearea(
@@ -247,4 +248,5 @@ template void igl::doublearea<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::M
 template void igl::doublearea<Eigen::Matrix<double, -1, 3, 1, -1, 3>, Eigen::Matrix<int, -1, 3, 1, -1, 3>, Eigen::Matrix<double, -1, 1, 0, -1, 1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, 3, 1, -1, 3> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, 3, 1, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> >&);
 template Eigen::Matrix<double, -1, -1, 0, -1, -1>::Scalar igl::doublearea_single<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&);
 template Eigen::Matrix<double, 2, 1, 0, 2, 1>::Scalar igl::doublearea_single<Eigen::Matrix<double, 2, 1, 0, 2, 1>, Eigen::Matrix<double, 2, 1, 0, 2, 1>, Eigen::Matrix<double, 2, 1, 0, 2, 1> >(Eigen::MatrixBase<Eigen::Matrix<double, 2, 1, 0, 2, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, 2, 1, 0, 2, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, 2, 1, 0, 2, 1> > const&);
+template Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1>::Scalar igl::doublearea_single<Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1>, Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1>, Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1> >(Eigen::MatrixBase<Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1> > const&);
 #endif

@@ -8,7 +8,7 @@
 #ifndef IGL_MAP_VERTICES_TO_CIRCLE_H
 #define IGL_MAP_VERTICES_TO_CIRCLE_H
 #include "igl_inline.h"
-
+#include <unsupported/Eigen/MPRealSupport>
 #include <Eigen/Dense>
 #include <vector>
 
@@ -24,10 +24,12 @@ namespace igl
   //   b  #W list of vertex ids
   // Outputs:
   //   UV   #W by 2 list of 2D position on the unit circle for the vertices in b
+  template <
+    typename DerivedV, typename DerivedF>
   IGL_INLINE void map_vertices_to_circle(
-  	const Eigen::MatrixXd& V,
-    const Eigen::VectorXi& bnd,
-  	Eigen::MatrixXd& UV);
+  	const Eigen::MatrixBase<DerivedV>& V,
+    const Eigen::MatrixBase<DerivedF>& bnd,
+  	Eigen::PlainObjectBase<DerivedV>& UV);
 }
 
 #ifndef IGL_STATIC_LIBRARY

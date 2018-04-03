@@ -7,6 +7,7 @@
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "is_symmetric.h"
 #include "find.h"
+#include <unsupported/Eigen/MPRealSupport>
 
 template <typename T>
 IGL_INLINE bool igl::is_symmetric(const Eigen::SparseMatrix<T>& A)
@@ -70,4 +71,6 @@ template bool igl::is_symmetric<Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen
 template bool igl::is_symmetric<double>(Eigen::SparseMatrix<double, 0, int> const&);
 template bool igl::is_symmetric<double, double>(Eigen::SparseMatrix<double, 0, int> const&, double);
 template bool igl::is_symmetric<double, int>(Eigen::SparseMatrix<double, 0, int> const&, int);
+template bool igl::is_symmetric<mpfr::mpreal, mpfr::mpreal>(Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&, mpfr::mpreal);
+template bool igl::is_symmetric<mpfr::mpreal, double>(Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&, double);
 #endif

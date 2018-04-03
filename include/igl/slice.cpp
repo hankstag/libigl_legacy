@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <unsupported/Eigen/SparseExtra>
+#include <unsupported/Eigen/MPRealSupport>
+
 
 template <typename TX, typename TY>
 IGL_INLINE void igl::slice(
@@ -356,4 +358,8 @@ template void igl::slice<unsigned int, unsigned int>(Eigen::SparseMatrix<unsigne
 template void igl::slice<class Eigen::Matrix<__int64, -1, 1, 0, -1, 1>, class Eigen::Matrix<__int64, -1, 1, 0, -1, 1>, class Eigen::PlainObjectBase<class Eigen::Matrix<__int64, -1, 1, 0, -1, 1>>>(class Eigen::Matrix<__int64, -1, 1, 0, -1, 1> const &, class Eigen::DenseBase<class Eigen::Matrix<__int64, -1, 1, 0, -1, 1>> const &, int, class Eigen::PlainObjectBase<class Eigen::Matrix<__int64, -1, 1, 0, -1, 1>> &);
 template void igl::slice<class Eigen::PlainObjectBase<class Eigen::Matrix<int, -1, -1, 0, -1, -1>>, class Eigen::Matrix<__int64, -1, 1, 0, -1, 1>, class Eigen::PlainObjectBase<class Eigen::Matrix<int, -1, -1, 0, -1, -1>>>(class Eigen::PlainObjectBase<class Eigen::Matrix<int, -1, -1, 0, -1, -1>> const &, class Eigen::DenseBase<class Eigen::Matrix<__int64, -1, 1, 0, -1, 1>> const &, int, class Eigen::PlainObjectBase<class Eigen::Matrix<int, -1, -1, 0, -1, -1>> &);
 #endif
+template void igl::slice<mpfr::mpreal, mpfr::mpreal>(Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::SparseMatrix<mpfr::mpreal, 0, int>&);
+template void igl::slice<Eigen::SparseMatrix<mpfr::mpreal, 0, int>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::SparseMatrix<mpfr::mpreal, 0, int> >(Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> > const&, int, Eigen::SparseMatrix<mpfr::mpreal, 0, int>&);
+template void igl::slice<Eigen::Matrix<mpfr::mpreal, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<mpfr::mpreal, -1, -1, 0, -1, -1> >(Eigen::Matrix<mpfr::mpreal, -1, -1, 0, -1, -1> const&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> > const&, int, Eigen::Matrix<mpfr::mpreal, -1, -1, 0, -1, -1>&);
+template void igl::slice<Eigen::MatrixBase<Eigen::Matrix<mpfr::mpreal, -1, 1, 0, -1, 1> >, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<mpfr::mpreal, -1, -1, 0, -1, -1> >(Eigen::MatrixBase<Eigen::Matrix<mpfr::mpreal, -1, 1, 0, -1, 1> > const&, Eigen::DenseBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> > const&, int, Eigen::Matrix<mpfr::mpreal, -1, -1, 0, -1, -1>&);
 #endif

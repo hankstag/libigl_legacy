@@ -11,6 +11,7 @@
 #include "../igl_inline.h"
 #include <string>
 #include <Eigen/Core>
+#include <unsupported/Eigen/MPRealSupport>
 
 namespace igl
 {

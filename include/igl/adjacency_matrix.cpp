@@ -8,7 +8,7 @@
 #include "adjacency_matrix.h"
 
 #include "verbose.h"
-
+#include <unsupported/Eigen/MPRealSupport>
 #include <vector>
 
 template <typename DerivedF, typename T>
@@ -70,4 +70,5 @@ IGL_INLINE void igl::adjacency_matrix(
 template void igl::adjacency_matrix<Eigen::Matrix<int, -1, -1, 0, -1, -1>, bool>(Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::SparseMatrix<bool, 0, int>&);
 template void igl::adjacency_matrix<Eigen::Matrix<int, -1, -1, 0, -1, -1>, double>(Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::SparseMatrix<double, 0, int>&);
 template void igl::adjacency_matrix<Eigen::Matrix<int, -1, -1, 0, -1, -1>, int>(Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::SparseMatrix<int, 0, int>&);
+template void igl::adjacency_matrix<Eigen::Matrix<int, -1, -1, 0, -1, -1>, mpfr::mpreal>(Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::SparseMatrix<mpfr::mpreal, 0, int>&);
 #endif

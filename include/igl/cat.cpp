@@ -12,6 +12,7 @@
 // Bug in unsupported/Eigen/SparseExtra needs iostream first
 #include <iostream>
 #include <unsupported/Eigen/SparseExtra>
+#include <unsupported/Eigen/MPRealSupport>
 
 
 // Sparse matrices need to be handled carefully. Because C++ does not 
@@ -264,4 +265,5 @@ template Eigen::Matrix<int, -1, 1, 0, -1, 1> igl::cat<Eigen::Matrix<int, -1, 1, 
 template Eigen::Matrix<double, -1, 1, 0, -1, 1> igl::cat<Eigen::Matrix<double, -1, 1, 0, -1, 1> >(int, Eigen::Matrix<double, -1, 1, 0, -1, 1> const&, Eigen::Matrix<double, -1, 1, 0, -1, 1> const&);
 template void igl::cat<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(int, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::Matrix<double, -1, -1, 0, -1, -1>&);
 template void igl::cat<Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(int, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::Matrix<int, -1, -1, 0, -1, -1>&);
+template Eigen::SparseMatrix<mpfr::mpreal, 0, int> igl::cat<Eigen::SparseMatrix<mpfr::mpreal, 0, int> >(int, Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&, Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&);
 #endif

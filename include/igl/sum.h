@@ -9,7 +9,7 @@
 #define IGL_SUM_H
 #include "igl_inline.h"
 #include <Eigen/Sparse>
-
+#include <unsupported/Eigen/MPRealSupport>
 namespace igl
 {
   // Note: If your looking for dense matrix matlab like sum for eigen matrics

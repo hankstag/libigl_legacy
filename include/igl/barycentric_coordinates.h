@@ -9,6 +9,7 @@
 #define IGL_BARYCENTRIC_COORDINATES_H
 #include "igl_inline.h"
 #include <Eigen/Core>
+#include <unsupported/Eigen/MPRealSupport>
 namespace igl
 {
   // Compute barycentric coordinates in a tet

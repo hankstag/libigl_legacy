@@ -12,6 +12,7 @@
 #include "AABB.h"
 #include <Eigen/Core>
 #include <Eigen/Sparse>
+#include <unsupported/Eigen/MPRealSupport>
 
 namespace igl
 {

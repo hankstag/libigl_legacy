@@ -6,6 +6,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can 
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "invert_diag.h"
+#include <unsupported/Eigen/MPRealSupport>
 
 template <typename T>
 IGL_INLINE void igl::invert_diag(
@@ -43,4 +44,5 @@ IGL_INLINE void igl::invert_diag(
 // Explicit template instantiation
 template void igl::invert_diag<double>(Eigen::SparseMatrix<double, 0, int> const&, Eigen::SparseMatrix<double, 0, int>&);
 template void igl::invert_diag<float>(Eigen::SparseMatrix<float, 0, int> const&, Eigen::SparseMatrix<float, 0, int>&);
+template void igl::invert_diag<mpfr::mpreal>(Eigen::SparseMatrix<mpfr::mpreal, 0, int> const&, Eigen::SparseMatrix<mpfr::mpreal, 0, int>&);
 #endif

@@ -9,7 +9,7 @@
 #ifndef IGL_SEGMENT_SEGMENT_INTERSECT_H
 #define IGL_SEGMENT_SEGMENT_INTERSECT_H
 
-
+#include <unsupported/Eigen/MPRealSupport>
 #include "igl_inline.h"
 #include <Eigen/Core>
 namespace igl

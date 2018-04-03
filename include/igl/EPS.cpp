@@ -6,6 +6,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can 
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "EPS.h"
+#include <unsupported/Eigen/MPRealSupport>
 
 template <> IGL_INLINE float igl::EPS()
 {
@@ -24,7 +25,12 @@ template <> IGL_INLINE double igl::EPS_SQ()
 {
   return igl::DOUBLE_EPS_SQ;
 }
+template <typename S_type> IGL_INLINE S_type igl::EPS()
+{
+  return static_cast<S_type>(igl::DOUBLE_EPS);
+}
 
 #ifdef IGL_STATIC_LIBRARY
 // Explicit template instantiation
+template mpfr::mpreal igl::EPS<mpfr::mpreal>();
 #endif

@@ -8,6 +8,7 @@
 #ifndef IGL_AABB_H
 #define IGL_AABB_H
 
+#include <unsupported/Eigen/MPRealSupport>
 #include "Hit.h"
 #include "igl_inline.h"
 #include <Eigen/Core>

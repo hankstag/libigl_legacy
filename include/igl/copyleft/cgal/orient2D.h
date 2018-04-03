@@ -9,6 +9,7 @@
 #ifndef IGL_COPYLEFT_CGAL_ORIENT_2D_H
 #define IGL_COPYLEFT_CGAL_ORIENT_2D_H
 
+#include <unsupported/Eigen/MPRealSupport>
 #include "../../igl_inline.h"
 
 namespace igl

@@ -10,6 +10,7 @@
 #include "igl_inline.h"
 #include <Eigen/Core>
 #include <Eigen/Sparse>
+#include <unsupported/Eigen/MPRealSupport>
 namespace igl
 {
   // Compute k-harmonic weight functions "coordinates".
