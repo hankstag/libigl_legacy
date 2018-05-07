@@ -56,16 +56,16 @@ namespace igl
     Eigen::MatrixXi & EF_d,
     Eigen::MatrixXi & EI_d);
 
-    IGL_INLINE void edge_flaps(
-            const Eigen::MatrixXi & F,
-            Eigen::MatrixXi & E,
-            Eigen::MatrixXi & allE,
-            Eigen::VectorXi & EMAP,
-            Eigen::MatrixXi & EF,
-            Eigen::MatrixXi & EI,
-            Eigen::MatrixXi & dEF,
-            Eigen::MatrixXi & dEI,
-            Eigen::VectorXi & EE);
+  IGL_INLINE void edge_flaps(
+    const Eigen::MatrixXi & F,
+    Eigen::MatrixXi & E,
+    Eigen::MatrixXi & allE,
+    Eigen::VectorXi & EMAP,
+    Eigen::MatrixXi & EF,
+    Eigen::MatrixXi & EI,
+    Eigen::MatrixXi & dEF,
+    Eigen::MatrixXi & dEI,
+    Eigen::VectorXi & EE);
 
 }
 #ifndef IGL_STATIC_LIBRARY

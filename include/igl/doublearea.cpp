@@ -14,6 +14,39 @@
 #include <limits>
 #include <unsupported/Eigen/MPRealSupport>
 
+ // mpfr
+template <typename DerivedV, typename DerivedF, typename DeriveddblA>
+IGL_INLINE void igl::doublearea_mpfr(
+  const Eigen::MatrixBase<DerivedV> & V,
+  const Eigen::MatrixBase<DerivedF> & F,
+  Eigen::PlainObjectBase<DeriveddblA> & dblA)
+{
+
+  const int dim = V.cols();
+  // Only support triangles
+  assert(F.cols() == 3);
+  const size_t m = F.rows();
+  // Compute edge lengths
+  Eigen::Matrix<typename DerivedV::Scalar, Eigen::Dynamic, 3> l;
+
+  // Projected area helper
+  const auto & proj_doublearea =
+    [&V,&F](const int x, const int y, const int f)
+  {
+    auto rx = V(F(f,0),x)-V(F(f,2),x);
+    auto sx = V(F(f,1),x)-V(F(f,2),x);
+    auto ry = V(F(f,0),y)-V(F(f,2),y);
+    auto sy = V(F(f,1),y)-V(F(f,2),y);
+    return rx*sy - ry*sx;
+  };
+
+  dblA.resize(m,1);
+  for(size_t f = 0;f<m;f++) 
+  {
+    dblA(f) = proj_doublearea(0,1,f);
+  }  
+}
+
 template <typename DerivedV, typename DerivedF, typename DeriveddblA>
 IGL_INLINE void igl::doublearea(
   const Eigen::MatrixBase<DerivedV> & V,
@@ -32,7 +65,7 @@ IGL_INLINE void igl::doublearea(
 
   // Projected area helper
   const auto & proj_doublearea =
-    [&V,&F](const int x, const int y, const int f)->double
+    [&V,&F](const int x, const int y, const int f)
   {
     auto rx = V(F(f,0),x)-V(F(f,2),x);
     auto sx = V(F(f,1),x)-V(F(f,2),x);
@@ -217,7 +250,8 @@ IGL_INLINE void igl::doublearea_quad(
   }
 
   // Compute areas
-  Eigen::VectorXd doublearea_tri;
+  // Eigen::VectorXd doublearea_tri;
+  Eigen::PlainObjectBase<DeriveddblA> doublearea_tri;
   igl::doublearea(V,Ft,doublearea_tri);
 
   dblA.resize(F.rows(),1);

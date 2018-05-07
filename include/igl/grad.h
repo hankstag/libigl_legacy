@@ -33,6 +33,19 @@ namespace igl {
   // i, and A is the area of triangle (i,j,k). ^R90 represent a rotation of
   // 90 degrees
   //
+
+// template <typename DerivedV, typename DerivedF>
+// IGL_INLINE void grad_tri_mpfr(const Eigen::PlainObjectBase<DerivedV>&V,
+//                      const Eigen::PlainObjectBase<DerivedF>&F,
+//                     Eigen::SparseMatrix<typename DerivedV::Scalar> &G,
+//                     bool uniform=false);
+
+template <typename DerivedV, typename DerivedF>
+IGL_INLINE void grad_mpfr(const Eigen::PlainObjectBase<DerivedV>&V,
+                     const Eigen::PlainObjectBase<DerivedF>&F,
+                    Eigen::SparseMatrix<typename DerivedV::Scalar> &G,
+                    bool uniform = false);
+
 template <typename DerivedV, typename DerivedF>
 IGL_INLINE void grad(const Eigen::PlainObjectBase<DerivedV>&V,
                      const Eigen::PlainObjectBase<DerivedF>&F,

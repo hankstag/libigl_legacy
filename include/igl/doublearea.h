@@ -28,6 +28,13 @@ namespace igl
   //
   // Known bug: For dim==3 complexity is O(#V + #F)!! Not just O(#F). This is a big deal
   // if you have 1million unreferenced vertices and 1 face
+
+  template <typename DerivedV, typename DerivedF, typename DeriveddblA>
+IGL_INLINE void doublearea_mpfr(
+  const Eigen::MatrixBase<DerivedV> & V,
+  const Eigen::MatrixBase<DerivedF> & F,
+  Eigen::PlainObjectBase<DeriveddblA> & dblA);
+
   template <typename DerivedV, typename DerivedF, typename DeriveddblA>
   IGL_INLINE void doublearea(
     const Eigen::MatrixBase<DerivedV> & V,
