@@ -27,7 +27,7 @@ IGL_INLINE double igl::line_search(
   assert(!std::isinf(old_energy) && !std::isnan(old_energy));
   double new_energy = old_energy;
   int cur_iter = 0;
-  int MAX_STEP_SIZE_ITER = 50;
+  int MAX_STEP_SIZE_ITER = 80;
 
   while (new_energy >= old_energy) {
     if (cur_iter > MAX_STEP_SIZE_ITER) {
