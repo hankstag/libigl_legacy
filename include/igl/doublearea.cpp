@@ -14,39 +14,6 @@
 #include <limits>
 #include <unsupported/Eigen/MPRealSupport>
 
- // mpfr
-template <typename DerivedV, typename DerivedF, typename DeriveddblA>
-IGL_INLINE void igl::doublearea_mpfr(
-  const Eigen::MatrixBase<DerivedV> & V,
-  const Eigen::MatrixBase<DerivedF> & F,
-  Eigen::PlainObjectBase<DeriveddblA> & dblA)
-{
-
-  const int dim = V.cols();
-  // Only support triangles
-  assert(F.cols() == 3);
-  const size_t m = F.rows();
-  // Compute edge lengths
-  Eigen::Matrix<typename DerivedV::Scalar, Eigen::Dynamic, 3> l;
-
-  // Projected area helper
-  const auto & proj_doublearea =
-    [&V,&F](const int x, const int y, const int f)
-  {
-    auto rx = V(F(f,0),x)-V(F(f,2),x);
-    auto sx = V(F(f,1),x)-V(F(f,2),x);
-    auto ry = V(F(f,0),y)-V(F(f,2),y);
-    auto sy = V(F(f,1),y)-V(F(f,2),y);
-    return rx*sy - ry*sx;
-  };
-
-  dblA.resize(m,1);
-  for(size_t f = 0;f<m;f++) 
-  {
-    dblA(f) = proj_doublearea(0,1,f);
-  }  
-}
-
 template <typename DerivedV, typename DerivedF, typename DeriveddblA>
 IGL_INLINE void igl::doublearea(
   const Eigen::MatrixBase<DerivedV> & V,
@@ -282,5 +249,4 @@ template void igl::doublearea<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::M
 template void igl::doublearea<Eigen::Matrix<double, -1, 3, 1, -1, 3>, Eigen::Matrix<int, -1, 3, 1, -1, 3>, Eigen::Matrix<double, -1, 1, 0, -1, 1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, 3, 1, -1, 3> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, 3, 1, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> >&);
 template Eigen::Matrix<double, -1, -1, 0, -1, -1>::Scalar igl::doublearea_single<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&);
 template Eigen::Matrix<double, 2, 1, 0, 2, 1>::Scalar igl::doublearea_single<Eigen::Matrix<double, 2, 1, 0, 2, 1>, Eigen::Matrix<double, 2, 1, 0, 2, 1>, Eigen::Matrix<double, 2, 1, 0, 2, 1> >(Eigen::MatrixBase<Eigen::Matrix<double, 2, 1, 0, 2, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, 2, 1, 0, 2, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, 2, 1, 0, 2, 1> > const&);
-template Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1>::Scalar igl::doublearea_single<Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1>, Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1>, Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1> >(Eigen::MatrixBase<Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<mpfr::mpreal, 2, 1, 0, 2, 1> > const&);
 #endif

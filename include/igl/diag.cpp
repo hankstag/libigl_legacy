@@ -105,5 +105,4 @@ template void igl::diag<double, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen
 template void igl::diag<double>(Eigen::SparseMatrix<double, 0, int> const&, Eigen::SparseVector<double, 0, int>&);
 template void igl::diag<double, Eigen::Matrix<double, -1, 1, 0, -1, 1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&, Eigen::SparseMatrix<double, 0, int>&);
 template void igl::diag<double>(Eigen::SparseVector<double, 0, int> const&, Eigen::SparseMatrix<double, 0, int>&);
-template void igl::diag<mpfr::mpreal>(Eigen::SparseVector<mpfr::mpreal, 0, int> const&, Eigen::SparseMatrix<mpfr::mpreal, 0, int>&);
 #endif

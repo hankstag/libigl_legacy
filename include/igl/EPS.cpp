@@ -32,5 +32,4 @@ template <typename S_type> IGL_INLINE S_type igl::EPS()
 
 #ifdef IGL_STATIC_LIBRARY
 // Explicit template instantiation
-template mpfr::mpreal igl::EPS<mpfr::mpreal>();
 #endif

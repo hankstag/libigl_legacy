@@ -30,12 +30,6 @@ namespace igl
   // if you have 1million unreferenced vertices and 1 face
 
   template <typename DerivedV, typename DerivedF, typename DeriveddblA>
-IGL_INLINE void doublearea_mpfr(
-  const Eigen::MatrixBase<DerivedV> & V,
-  const Eigen::MatrixBase<DerivedF> & F,
-  Eigen::PlainObjectBase<DeriveddblA> & dblA);
-
-  template <typename DerivedV, typename DerivedF, typename DeriveddblA>
   IGL_INLINE void doublearea(
     const Eigen::MatrixBase<DerivedV> & V,
     const Eigen::MatrixBase<DerivedF> & F,
